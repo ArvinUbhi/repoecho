@@ -1,6 +1,6 @@
 # Mode controls
 
-Use `python3 "$HELPER" --root "$REPO" COMMAND` (or `python`/`py -3` on Windows). Settings apply to the selected repository root/worktree, persist across sessions and do not affect other repositories.
+Use `gh repoecho COMMAND`, or the bundled CLI as described in SKILL.md. For machine output use `gh repoecho --root "$REPO" --json COMMAND`. Settings apply to the selected repository root/worktree, persist across sessions and do not affect other repositories.
 
 | User intent | Command | Effect |
 |---|---|---|
@@ -11,7 +11,8 @@ Use `python3 "$HELPER" --root "$REPO" COMMAND` (or `python`/`py -3` on Windows).
 | Use on all branches | `branch all` | Default on; clear all branch overrides |
 | Remove this branch's override | `branch inherit` | Use the default branch setting |
 | Show controls quickly | `mode`, `cache`, or `branch` | Report controls without indexing or opening the database |
-| Show controls and cache state | `status` | Index/status when enabled; bypass report when disabled |
+| Show controls without indexing | `status` | Fast status, no database access |
+| Show controls and cache state | `inspect` | Index/status when enabled; bypass report when disabled |
 
 All three gates must allow caching: **skill on AND cache on AND current branch allowed**. Enabling one does not silently override another. Always report `effective_enabled` and any `bypass_reasons` so the user knows the actual result.
 
@@ -22,3 +23,5 @@ Off modes do not open, read or write the knowledge database and do not scan sour
 Git branch controls are resolved afresh on every invocation. Names containing `/` work. Detached HEAD and non-Git directories follow the default branch setting; they cannot receive a named-branch override. Thus `branch only` also disables detached HEAD until `branch all` or another applicable default policy is chosen. Ordinary `mode`/`cache` controls work in non-Git directories.
 
 To disable discovery of the skill **across all repositories in Copilot itself**, the user can use `copilot skill disable repoecho`; enable with `copilot skill enable repoecho`. That is a Copilot setting, separate from these per-repository gates. A disabled Copilot skill will not process natural-language toggle requests until re-enabled.
+
+`gh repoecho on` and `off` are shortcuts for `mode on` and `mode off`. `gh repoecho doctor` reports interpreter/tool paths and effective controls without scanning. Use `gh repoecho --help` for available commands.

@@ -4,71 +4,68 @@
 
 A two-pass knowledge-caching skill for **GitHub Copilot CLI**. Let Copilot learn a repository, retain compact source-linked notes, and retrieve only relevant notes whose evidence still matches. Java/Maven/Gradle guidance is included; the cache engine works with eligible text files in any language and in Git or plain directory trees.
 
-## Install once, use across repositories
+## Two-command setup
 
-Requirements: GitHub Copilot CLI, **Python 3.10+ with the standard `sqlite3` module**, and Git for Git-aware discovery. No pip install, server, embedding model, API key or Java dependency.
+Install [GitHub CLI](https://cli.github.com/), [uv](https://docs.astral.sh/uv/getting-started/installation/) and Git first. On Windows, Git for Windows supplies the `sh` interpreter used by gh aliases. Then:
 
 ```sh
-git clone https://github.com/ArvinUbhi/repoecho.git
-cd repoecho
-python3 tools/install.py
+gh repo clone ArvinUbhi/repoecho
+uv run --no-project --python '>=3.10' repoecho/tools/install.py --gh
 ```
 
-On Windows use `py -3 tools/install.py` or `python tools/install.py`. The installer copies the **complete** skill to `~/.copilot/skills/repoecho`, including scripts and references. It refuses to overwrite an existing installation unless you pass `--replace`.
+uv finds a compatible Python automatically and can download it if needed. No pip packages, API key, database server or Java dependency. Setup copies the complete skill into `~/.copilot/skills/repoecho` and registers **`gh repoecho`**. The alias points to the installed copy; you can remove the download checkout afterwards. Existing installations are protected: add `--replace` to update. Conflicting aliases are protected separately by `--replace-alias`.
 
-In Copilot CLI:
+Open Copilot CLI in your Java app (or any other repository):
 
 ```text
 /skills reload
-/skills info repoecho
-Use /repoecho to learn this repository's architecture, build, tests and main modules.
+Use /repoecho to learn this repository's architecture, build and main modules.
 ```
 
-In a later session:
+Next time: `Use /repoecho to find the shutdown code and help me change it.` Copilot tries validated retrieval first, learning only missing or stale knowledge. Explicit invocation is reliable; automatic selection depends on Copilot. This skill does not intercept every prompt or install a background process.
 
-```text
-Use /repoecho to find the process shutdown code and help me make this change: ...
-```
+## Daily commands
 
-## Easy mode and branch controls
+Run these from anywhere inside your repository; the CLI finds the Git worktree root automatically:
 
-Ask Copilot naturally: **“Use /repoecho to turn caching off”**, **“Turn RepoEcho on only for this branch”**, or **“Show RepoEcho's current modes.”** It translates these into the controls below and reports whether caching is effectively enabled.
-
-```sh
-REPOECHO="$HOME/.copilot/skills/repoecho/scripts/repoecho.py"
-# Run from the target repository (or add --root /path/to/repo before the command).
-python3 "$REPOECHO" mode off
-python3 "$REPOECHO" mode on
-python3 "$REPOECHO" cache off
-python3 "$REPOECHO" cache on
-python3 "$REPOECHO" branch only
-python3 "$REPOECHO" branch all
-python3 "$REPOECHO" mode
-```
-
-| Control | Meaning |
+| Command | Result |
 |---|---|
-| `mode on/off` | Enable/disable the RepoEcho workflow for this checkout |
-| `cache on/off` | Allow/bypass knowledge-cache reads and writes |
-| `branch on/off` | Persist an override for the current Git branch |
-| `branch only` | Allow only this branch; default all others off |
-| `branch all` | Allow all branches and clear overrides |
-| `branch inherit` | Remove this branch's override |
-| `mode` | Show all controls and the effective state without indexing |
+| `gh repoecho` or `gh repoecho status` | Fast mode/branch summary, no indexing or knowledge database access |
+| `gh repoecho on` / `off` | Enable/disable the skill workflow for this repository |
+| `gh repoecho cache on` / `off` | Independently allow/bypass cache reads and writes |
+| `gh repoecho branch only` | Allow the current branch; default others off |
+| `gh repoecho branch on` / `off` | Set an override for the current branch |
+| `gh repoecho branch all` | Allow all branches and clear overrides |
+| `gh repoecho branch inherit` | Remove the current branch override |
+| `gh repoecho inspect` | Scan and show cache candidates/staleness |
+| `gh repoecho doctor` | Show runtime, tool paths and effective controls |
+| `gh repoecho benchmark` | Run an isolated synthetic performance benchmark |
+| `gh repoecho --help` | Command help |
 
-All gates must allow caching. Turning the skill on does not silently turn caching or a disabled branch on. Off modes retain notes but never open the knowledge database. See [mode semantics](.github/skills/repoecho/references/controls.md).
+All three gates must allow caching. `on` does not silently enable a disabled cache or branch. Off modes retain notes but do not open the knowledge database. Ask Copilot naturally: **“Use /repoecho to turn caching off”** or **“Enable RepoEcho only for this branch.”** The skill and shell command use the same engine and settings.
 
-For a **global Copilot discovery toggle**, use `copilot skill disable repoecho` / `copilot skill enable repoecho`; this is separate from per-repository modes.
+For a different repository or an explicit subtree: `gh repoecho --root /path/to/app status`. Global options go before the command. Use `--json` for machine-readable controls: `gh repoecho --json status`. Non-Git source trees use the current directory unless `--root` is supplied. Separate repositories and linked worktrees never share indexes.
 
-Copilot first tries validated retrieval. It learns missing or stale parts when needed, then resumes the engineering task. Explicit `/repoecho` invocation is the most reliable way to request this workflow; automatic activation depends on Copilot selecting the skill. A skill does not install a background hook or force every prompt through a cache.
-
-For a project-local installation:
+## Benchmark and updates
 
 ```sh
-python3 tools/install.py --project /path/to/your/java-app
+gh repoecho benchmark --files 2000 --notes 20 --runs 5 > benchmark.json
 ```
 
-This copies to that repository's `.github/skills/repoecho`. Commit the skill if the team should share its instructions. Generated knowledge stays local in each checkout's `.repoecho/`. A generated ignore file keeps that cache out of ordinary Git adds. For an optional instruction reminder, see [the integration snippet](docs/copilot-instructions-snippet.md).
+The benchmark creates a temporary Java fixture. It measures cold scanning, warm retrieval, source invalidation, disabled modes and feature-branch-to-main cache reuse. It never switches your repository's branch or changes its cache. Increase `--notes` for larger indexes; `--plain` measures non-Git mode. JSON output makes runs easy to compare. These are **local helper timings**, excluding outer gh/uv startup and model thinking time. The intended LLM benefit comes from reusing focused, verified notes instead of repeated exploration; no model speedup is claimed from synthetic measurements.
+
+To update from a retained checkout:
+
+```sh
+git -C repoecho pull --ff-only
+uv run --no-project --python '>=3.10' repoecho/tools/install.py --gh --replace
+```
+
+Then `/skills reload` in Copilot. If you removed the checkout, clone it again first. `gh repoecho setup --gh` repairs alias registration using the installed copy; it does not fetch updates.
+
+For a project/team installation: `gh repoecho setup --project /path/to/app` (add `--replace` when updating). The personal gh command continues to use the personal skill version. Keep versions aligned when using both. Without gh, omit `--gh` during setup and use Copilot or the bundled CLI directly. Without uv, Python 3.10+ with `sqlite3` can execute the same scripts. Offline machines need a compatible Python already available; set `UV_OFFLINE=1` to prevent downloads.
+
+This uses GitHub's supported **shell alias** mechanism, not a gh extension. Remove the alias with `gh alias delete repoecho`. Full setup and controls live in the skill's [setup reference](.github/skills/repoecho/references/setup.md) and [mode reference](.github/skills/repoecho/references/controls.md). To toggle Copilot's global skill discovery itself, use `copilot skill disable repoecho` / `copilot skill enable repoecho`; repository controls remain independent.
 
 ## The two passes
 
@@ -123,7 +120,7 @@ Initial indexing is proportional to eligible file bytes. Warm discovery still co
 | Path | Purpose |
 |---|---|
 | [.github/skills/repoecho/SKILL.md](.github/skills/repoecho/SKILL.md) | The Copilot two-pass workflow |
-| [.github/skills/repoecho/scripts/repoecho.py](.github/skills/repoecho/scripts/repoecho.py) | Standard-library scanner, evidence validator, cache and retrieval CLI |
+| [.github/skills/repoecho/scripts/repoecho.py](.github/skills/repoecho/scripts/repoecho.py) | Standard-library scanner, evidence validator, cache and retrieval engine |
 | [.github/skills/repoecho/references/cache-contract.md](.github/skills/repoecho/references/cache-contract.md) | Freshness, configuration, exclusions and recovery |
 | [.github/skills/repoecho/references/note-format.md](.github/skills/repoecho/references/note-format.md) | Source-linked knowledge note schema |
 | [.github/skills/repoecho/references/java.md](.github/skills/repoecho/references/java.md) | Maven, Gradle, Java 8 and monorepo guidance |
@@ -138,18 +135,14 @@ The `agents/openai.yaml` file is optional metadata for other compatible skill su
 
 ## Helper commands
 
-For a personal installation on macOS/Linux:
-
 ```sh
-REPOECHO="$HOME/.copilot/skills/repoecho/scripts/repoecho.py"
-python3 "$REPOECHO" --root /path/to/app plan --query "process lifecycle"
-python3 "$REPOECHO" --root /path/to/app query "ProcessManager shutdown" --limit 5
-python3 "$REPOECHO" --root /path/to/app scan --full
-python3 "$REPOECHO" --root /path/to/app status
-python3 "$REPOECHO" --root /path/to/app forget process-lifecycle
+gh repoecho --root /path/to/app plan --query "process lifecycle"
+gh repoecho --root /path/to/app query "ProcessManager shutdown" --limit 5
+gh repoecho --root /path/to/app scan --full
+gh repoecho --root /path/to/app forget process-lifecycle
 ```
 
-`--root` precedes the command. The default is the current directory; always choose a consistent root. `status` reports candidate/stale states without loading note bodies; `query` performs authoritative content verification. For `capture` → Copilot synthesis → `remember`, follow [SKILL.md](.github/skills/repoecho/SKILL.md).
+`scan --full` refreshes hashes; Copilot must still synthesize refreshed notes. `inspect` reports candidates; `query` authoritatively validates evidence. `capture` → Copilot synthesis → `remember` is documented in [SKILL.md](.github/skills/repoecho/SKILL.md). The legacy engine script defaults to the current directory; the friendly CLI discovers the worktree root.
 
 Optional `.repoecho.json` in the target repository:
 
@@ -175,7 +168,7 @@ No cache can infer uncaptured semantic dependencies or promise an atomic snapsho
 
 ```sh
 python3 -m unittest discover -s tests -v
-python3 tools/benchmark.py --files 2000 --notes 20 --runs 5
+uv run --no-project --python '>=3.10' tools/benchmark.py --files 2000 --notes 20 --runs 5
 ```
 
 Copilot format and locations were checked against [GitHub's official skill guide](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills) and [CLI reference](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference). Search uses [SQLite FTS5](https://www.sqlite.org/fts5.html) through Python's [`sqlite3`](https://docs.python.org/3/library/sqlite3.html).

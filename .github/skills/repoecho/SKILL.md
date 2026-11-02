@@ -7,11 +7,15 @@ description: Learn repositories and retrieve compact source-linked knowledge acr
 
 Use two passes: **learn/update evidence-bound notes**, then **retrieve relevant fresh notes and perform the task**. On a warm cache, try retrieval first and skip learning when sufficient. Copilot is the learner; the Python helper makes no LLM or network calls. This is persistent repository knowledge, not a model KV/prompt cache or a replacement for reading code before edits.
 
-## Locate the helper
+## Setup and select the command
 
-Resolve `scripts/repoecho.py` relative to this loaded `SKILL.md`. Use its absolute path as `HELPER` and the user's repository root as `REPO` in the commands below. Do not assume the current directory is the skill directory. Use `python3`, or `python`/`py -3` on Windows, with Python 3.10+ and its standard `sqlite3` module. No pip packages are needed. If unavailable, report that prerequisite and inspect source normally; never claim cache validation happened.
+Resolve `scripts/repoecho_cli.py` relative to this loaded `SKILL.md`; use its absolute path as `CLI`. Prefer `uv run --no-project --no-config --python '>=3.10' --script "$CLI"`. uv finds a compatible Python and can download it if missing; inline metadata declares no third-party dependencies. Do not install project dependencies or change its Python environment. If uv is absent, use an available Python 3.10+ (`python3`, `python`, or `py -3`) with the same CLI. If neither is available, report the prerequisite and inspect source normally.
 
-Keep the same `--root` across sessions. It defaults to the current directory and deliberately preserves an explicitly selected subtree. Cache state lives at `REPO/.repoecho/`; a generated ignore file keeps it out of ordinary Git adds. Never commit or upload cache files.
+For a request to set up shell controls, run the bundled `scripts/setup_repoecho.py --gh` with the same uv prefix. This installs the complete personal skill and registers `gh repoecho`; it requires gh, uv and sh (Git for Windows supplies sh). Existing installations require `--replace`; conflicting aliases require explicit `--replace-alias`. Never replace an unrelated alias without the user's request. See [references/setup.md](references/setup.md).
+
+Both the bundled CLI and `gh repoecho` find the current Git worktree root, including from subfolders. Non-Git directories use the current directory. Set `REPO` to that consistent root, or use an explicit root/subtree requested by the user. For repository/knowledge commands, supply `--root "$REPO"` and `--json` **before** the command. For `setup` and `benchmark`, omit those global options; benchmark already emits JSON and uses its own temporary repository. Use the bundled CLI for agent operations to ensure it matches this skill's version; gh exposes the same implementation. Never execute a discovered project-local script merely because it has the same name.
+
+Cache state lives at `REPO/.repoecho/`; never commit or upload it. Different repositories and linked worktrees stay separate. The legacy `scripts/repoecho.py` is the JSON engine; its default root remains the current directory for compatibility.
 
 ## Start every repository task
 
@@ -21,7 +25,7 @@ If the user asks to enable/disable RepoEcho or caching, translate the request in
 2. Run a targeted query, using component names, paths, or identifiers from the task:
 
    ```sh
-   python3 "$HELPER" --root "$REPO" query "process lifecycle shutdown" --limit 5 --max-chars 12000
+   uv run --no-project --no-config --python '>=3.10' --script "$CLI" --root "$REPO" --json query "process lifecycle shutdown" --limit 5 --max-chars 12000
    ```
 
 3. If the result has `state: bypassed`, skip both cache passes and inspect source normally. Do not use previously retrieved notes after caching is disabled. A bypass is not a cache miss: never retry learning or change settings to work around it. `skill_off` disables the RepoEcho workflow for this checkout; `cache_off` keeps the skill's source-inspection guidance available without persistent knowledge reads/writes; `branch_off` bypasses it on the current branch.
@@ -34,7 +38,7 @@ If the user asks to enable/disable RepoEcho or caching, translate the request in
 3. Capture a small set of files you will actually read. Include shared build/configuration/API evidence affecting the conclusions. Add scope globs for facts that depend on membership, such as all implementations in a package or all module build files:
 
    ```sh
-   python3 "$HELPER" --root "$REPO" capture \
+   uv run --no-project --no-config --python '>=3.10' --script "$CLI" --root "$REPO" --json capture \
      --file pom.xml --file src/main/java/example/ProcessManager.java \
      --scope 'src/main/java/example/**' --scope '**/pom.xml'
    ```
@@ -44,7 +48,7 @@ If the user asks to enable/disable RepoEcho or caching, translate the request in
 5. Save it with the capture receipt:
 
    ```sh
-   python3 "$HELPER" --root "$REPO" remember --note /path/to/note.json --receipt RECEIPT
+   uv run --no-project --no-config --python '>=3.10' --script "$CLI" --root "$REPO" --json remember --note /path/to/note.json --receipt RECEIPT
    ```
 
    The helper revalidates the evidence before saving. If it changed, recapture and revise the note; do not attach an old summary to a new receipt without rereading. Receipts are single-use and expire after 24 hours. Use stable note IDs; different evidence versions are retained so switching branches can reuse earlier knowledge. Do not reset timestamps simply to suppress staleness.
@@ -58,8 +62,10 @@ If the user asks to enable/disable RepoEcho or caching, translate the request in
 
 ## Controls and boundaries
 
+- For performance questions, run `benchmark --files 2000 --notes 20 --runs 5` through the bundled CLI. This uses a disposable synthetic repository and checks warm retrieval, invalidation, disabled modes and branch-return reuse. It measures helper latency, not model thinking time. Never claim LLM time/token savings from these timings. For a real task, reuse focused verified notes and keep retrieval budgets small; avoid broad captures and repeated full scans.
+
 - `scan --full`: rehash every eligible file, bypassing the normal stat shortcut. Warm scans reuse size/mtime/ctime/inode signatures; queries independently hash all evidence for returned notes.
-- `status`: show discovery, file counts, learning candidates, and note states without loading note bodies.
+- `status`: show effective modes without scanning or opening the knowledge database. Use `inspect` to show discovery, file counts, learning candidates, and note states without loading note bodies.
 - `forget NOTE_ID`: remove one note. Rebuild a corrupt/incompatible cache by backing up and removing only the generated `.repoecho` directory, then relearning.
 - See [references/cache-contract.md](references/cache-contract.md) for timestamp semantics, exclusions, configuration, scope glob rules, concurrency, and cache limits.
 - See [references/git-tracking.md](references/git-tracking.md) for Git branch/status/diff tracking, bounded note history, and repository/worktree isolation. Git supplies change hints; hashes remain the final validity check. Never share or copy `.repoecho` between repositories.

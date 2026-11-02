@@ -1,6 +1,6 @@
 # Validation
 
-Recorded on 2 November 2026. All 63 tests passed locally on Linux with Python 3.12.14; this is not a claim of a live GitHub Copilot CLI run. Copilot CLI was not installed in the build environment. Format, installation locations and slash commands were checked against GitHub's official documentation linked in the README.
+Recorded on 2 November 2026. All 71 tests passed locally on Linux with Python 3.12.14; this is not a claim of a live GitHub Copilot CLI run. Copilot CLI was not installed in the build environment. Real gh 2.103.3 + uv 0.13.4 integration was exercised in isolated temporary home/config directories, including installation, alias updates, paths with apostrophes/spaces, argument forwarding and the installed benchmark. Format, installation locations and slash commands were checked against GitHub's official documentation linked in the README.
 
 ## Behavioral checks
 
@@ -17,6 +17,7 @@ Run `python3 -m unittest discover -s tests -v` from the repository root. The sui
 - Binary/secret-path/generated/large-file exclusions, custom glob behavior, symlink and traversal rejection, root identity and corrupt-cache failure.
 - FTS and fallback search, concurrent CLI processes, note deletion and absence of source blobs from storage.
 - Complete personal/project installation and overwrite protection.
+- uv isolation from incompatible project dependencies/Python pins; gh alias conflict protection and idempotent updates; rollback after alias failure; human/JSON controls; nested worktree-root discovery; benchmark isolation from exported Git paths.
 - Windows path-stat versus descriptor-stat timestamp differences, while still rejecting metadata changes during a read. See [CPython issue 157671](https://github.com/python/cpython/issues/157671).
 - Independent skill/cache/branch controls, precedence, off-mode database bypass, atomic concurrent settings updates and resume-after-change validation.
 - Git status and staged/unstaged diffs, branch transition diffs, missing-history fallback, retained note revisions, history bounds, and cache isolation across repositories and linked worktrees.
@@ -40,16 +41,22 @@ Observed sample on the build host, using a Git repository with 2,000 synthetic U
 
 | Measurement | Observed |
 |---|---:|
-| Cold scan CLI | 476.42 ms |
-| Synthetic learning setup, 20 notes | 4,973.94 ms |
-| Median warm query CLI, 5 runs | 190.53 ms |
-| Sample p95 warm query CLI | 231.15 ms |
-| Median skill-off query CLI | 55.25 ms |
-| Median cache-off query CLI | 53.92 ms |
-| Median branch-off query CLI | 59.29 ms |
-| Changed-source query CLI | 204.49 ms |
+| Cold scan CLI | 546.28 ms |
+| Synthetic learning setup, 20 notes | 4,775.06 ms |
+| Median warm query CLI, 5 runs | 203.14 ms |
+| Sample p95 warm query CLI | 216.81 ms |
+| Median skill-off query CLI | 57.14 ms |
+| Median cache-off query CLI | 57.15 ms |
+| Median branch-off query CLI | 53.04 ms |
+| Changed-source query CLI | 187.55 ms |
 | Manifest files rehashed on warm query | 0 |
 | Evidence files independently verified | 3 |
 | Note payload returned | 1,122 characters |
+| Return-to-main query | 236.68 ms |
+| Original revision reused after branch return | yes |
 
-Wall times depend on CPU/filesystem/cache warmth and can vary between consecutive samples. CLI timings include interpreter startup, Git operations, enumeration, stat checks, lookup and strict evidence verification. Synthetic learning setup exercises capture/remember with fabricated benchmark notes and excludes LLM synthesis. Provider latency and Copilot context overhead are not measured. Twenty notes are not a large-index ranking benchmark; use `--notes` to scale it and `--plain` for non-Git mode. Sample p95 is not an SLA. No token-savings percentage or Copilot speedup is claimed. Run the tool on representative repository/storage sizes before setting performance expectations.
+Wall times depend on CPU/filesystem/cache warmth and can vary between consecutive samples. CLI timings exclude the outer gh/uv launch and include helper interpreter startup, Git operations, enumeration, stat checks, lookup and strict evidence verification. Synthetic learning setup exercises capture/remember with fabricated benchmark notes and excludes LLM synthesis. Provider latency and Copilot context overhead are not measured. Twenty notes are not a large-index ranking benchmark; use `--notes` to scale it and `--plain` for non-Git mode. Sample p95 is not an SLA. No token-savings percentage or Copilot speedup is claimed. Run the tool on representative repository/storage sizes before setting performance expectations.
+
+## Command usability walkthrough
+
+An independent agent used the bundled CLI in a disposable Java Git repository, enabled main-only caching, verified state from a nested source directory, switched to a disabled feature branch, confirmed query bypass, ran the synthetic benchmark and returned to main. Root discovery and branch controls behaved correctly, with a clean final Git status. Its feedback identified an ambiguous global-options instruction; the skill now explicitly says benchmark already emits JSON and does not accept repository-root options.

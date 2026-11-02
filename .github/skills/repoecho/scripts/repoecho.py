@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.10"
+# dependencies = []
+# ///
 """RepoEcho: local, evidence-bound repository memory. Python 3.10+, stdlib only."""
 from __future__ import annotations
 
@@ -23,7 +27,7 @@ import tempfile
 import time
 import uuid
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 SCHEMA = "1"
 CACHE = ".repoecho"
 DEFAULTS = {"exclude": [], "max_file_bytes": 1_048_576,
