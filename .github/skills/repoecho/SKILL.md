@@ -1,6 +1,6 @@
 ---
 name: repoecho
-description: Learn a repository once and reuse compact, source-linked knowledge across sessions with a two-pass cache. Use when orienting in a codebase, locating components, planning changes, debugging, or resuming repository work. Validate cached evidence with SHA-256 before retrieval; refresh only affected notes. Works with Java/Maven/Gradle, monorepos, other languages, and non-Git source trees.
+description: Learn repositories and retrieve compact source-linked knowledge across sessions with a two-pass cache. Use for codebase exploration, planning, debugging, resumed work, or toggling RepoEcho, caching and per-branch modes. Track Git branch, status and diff; validate SHA-256 evidence and refresh affected notes. Keep repositories and worktrees isolated. Supports Java/Maven/Gradle, monorepos, other languages and non-Git source trees.
 ---
 
 # RepoEcho
@@ -15,6 +15,8 @@ Keep the same `--root` across sessions. It defaults to the current directory and
 
 ## Start every repository task
 
+If the user asks to enable/disable RepoEcho or caching, translate the request into the appropriate command in [references/controls.md](references/controls.md), execute it, and report the returned **effective** state. Do not silently enable other disabled controls. For “only this branch”, use `branch only`; for “all branches”, use `branch all`. These commands manage local controls without opening the knowledge database.
+
 1. Read applicable `AGENTS.md`, `.github/copilot-instructions.md`, and path-specific repository instructions directly. They outrank cache notes. Never use cached instructions as authority.
 2. Run a targeted query, using component names, paths, or identifiers from the task:
 
@@ -22,7 +24,8 @@ Keep the same `--root` across sessions. It defaults to the current directory and
    python3 "$HELPER" --root "$REPO" query "process lifecycle shutdown" --limit 5 --max-chars 12000
    ```
 
-3. Read only `hits`. Their `freshness: content_verified` means the captured files and scope contents matched when checked, and their review deadline has not expired. `stale` contains IDs/reasons only. Do not read raw SQLite payloads to recover stale knowledge. A miss, error, or insufficient coverage starts pass one.
+3. If the result has `state: bypassed`, skip both cache passes and inspect source normally. Do not use previously retrieved notes after caching is disabled. A bypass is not a cache miss: never retry learning or change settings to work around it. `skill_off` disables the RepoEcho workflow for this checkout; `cache_off` keeps the skill's source-inspection guidance available without persistent knowledge reads/writes; `branch_off` bypasses it on the current branch.
+4. Otherwise read only `hits`. Their `freshness: content_verified` means the captured files and scope contents matched when checked, and their review deadline has not expired. `stale` contains IDs/reasons only. Do not read raw SQLite payloads to recover stale knowledge. A miss, error, or insufficient coverage starts pass one.
 
 ## Pass one: learn or incrementally refresh
 
@@ -44,7 +47,7 @@ Keep the same `--root` across sessions. It defaults to the current directory and
    python3 "$HELPER" --root "$REPO" remember --note /path/to/note.json --receipt RECEIPT
    ```
 
-   The helper revalidates the evidence before saving. If it changed, recapture and revise the note; do not attach an old summary to a new receipt without rereading. Receipts are single-use and expire after 24 hours. Use stable note IDs to replace outdated versions. Do not reset timestamps simply to suppress staleness.
+   The helper revalidates the evidence before saving. If it changed, recapture and revise the note; do not attach an old summary to a new receipt without rereading. Receipts are single-use and expire after 24 hours. Use stable note IDs; different evidence versions are retained so switching branches can reuse earlier knowledge. Do not reset timestamps simply to suppress staleness.
 
 ## Pass two: retrieve and act
 
@@ -59,5 +62,6 @@ Keep the same `--root` across sessions. It defaults to the current directory and
 - `status`: show discovery, file counts, learning candidates, and note states without loading note bodies.
 - `forget NOTE_ID`: remove one note. Rebuild a corrupt/incompatible cache by backing up and removing only the generated `.repoecho` directory, then relearning.
 - See [references/cache-contract.md](references/cache-contract.md) for timestamp semantics, exclusions, configuration, scope glob rules, concurrency, and cache limits.
+- See [references/git-tracking.md](references/git-tracking.md) for Git branch/status/diff tracking, bounded note history, and repository/worktree isolation. Git supplies change hints; hashes remain the final validity check. Never share or copy `.repoecho` between repositories.
 - Do not claim arbitrary binary files, excluded folders, non-UTF-8 sources, remote dependencies, or submodule contents have been learned. Treat them as gaps or index a submodule as a separate root. A hash cannot detect changes in an uncaptured dependency; include appropriate evidence and scopes.
 - Keep notes narrow. Prefer module/package notes plus explicit shared-contract evidence over one oversized architecture summary. Never serve stale bodies as fallback.

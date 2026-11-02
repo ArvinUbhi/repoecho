@@ -1,6 +1,6 @@
 # Validation
 
-Recorded on 2 November 2026. All 43 tests passed locally on Linux with Python 3.12.14; this is not a claim of a live GitHub Copilot CLI run. Copilot CLI was not installed in the build environment. Format, installation locations and slash commands were checked against GitHub's official documentation linked in the README.
+Recorded on 2 November 2026. All 63 tests passed locally on Linux with Python 3.12.14; this is not a claim of a live GitHub Copilot CLI run. Copilot CLI was not installed in the build environment. Format, installation locations and slash commands were checked against GitHub's official documentation linked in the README.
 
 ## Behavioral checks
 
@@ -18,6 +18,9 @@ Run `python3 -m unittest discover -s tests -v` from the repository root. The sui
 - FTS and fallback search, concurrent CLI processes, note deletion and absence of source blobs from storage.
 - Complete personal/project installation and overwrite protection.
 - Windows path-stat versus descriptor-stat timestamp differences, while still rejecting metadata changes during a read. See [CPython issue 157671](https://github.com/python/cpython/issues/157671).
+- Independent skill/cache/branch controls, precedence, off-mode database bypass, atomic concurrent settings updates and resume-after-change validation.
+- Git status and staged/unstaged diffs, branch transition diffs, missing-history fallback, retained note revisions, history bounds, and cache isolation across repositories and linked worktrees.
+- A benchmark smoke test covering warm retrieval, invalidation and disabled modes.
 
 The CI workflow declares Python 3.10 and 3.13 on Linux, macOS and Windows. A declared matrix is not evidence of successful remote runs; consult GitHub Actions for actual results. Symlink tests skip when the platform does not permit creating symlinks.
 
@@ -30,18 +33,23 @@ This demonstrates the agent-facing workflow on a controlled fixture. It does not
 ## Reproducible benchmark
 
 ```sh
-python3 tools/benchmark.py --files 2000 --runs 5
+python3 tools/benchmark.py --files 2000 --notes 20 --runs 5
 ```
 
-Observed sample on the build host, using a plain directory with 2,000 synthetic UTF-8 Java files (about 3.6 KB each), one compact note and three source dependencies:
+Observed sample on the build host, using a Git repository with 2,000 synthetic UTF-8 Java files (about 3.6 KB each), 20 compact notes and three source dependencies per note:
 
 | Measurement | Observed |
 |---|---:|
-| Cold manifest scan | 779.24 ms |
-| Median warm manifest scan, 5 runs | 190.68 ms |
-| Median warm query, 5 runs | 185.62 ms |
+| Cold scan CLI | 476.42 ms |
+| Synthetic learning setup, 20 notes | 4,973.94 ms |
+| Median warm query CLI, 5 runs | 190.53 ms |
+| Sample p95 warm query CLI | 231.15 ms |
+| Median skill-off query CLI | 55.25 ms |
+| Median cache-off query CLI | 53.92 ms |
+| Median branch-off query CLI | 59.29 ms |
+| Changed-source query CLI | 204.49 ms |
 | Manifest files rehashed on warm query | 0 |
 | Evidence files independently verified | 3 |
-| Note payload returned | 853 characters |
+| Note payload returned | 1,122 characters |
 
-Wall times depend on CPU/filesystem/cache warmth and can vary between consecutive samples. The query includes enumeration, stat checks, lookup and strict evidence verification. It excludes Python process startup, provider latency, LLM synthesis and Copilot context overhead. A single note is not a large-index ranking benchmark. No token-savings percentage or Copilot speedup is claimed. Run this tool on representative repository/storage sizes before setting performance expectations.
+Wall times depend on CPU/filesystem/cache warmth and can vary between consecutive samples. CLI timings include interpreter startup, Git operations, enumeration, stat checks, lookup and strict evidence verification. Synthetic learning setup exercises capture/remember with fabricated benchmark notes and excludes LLM synthesis. Provider latency and Copilot context overhead are not measured. Twenty notes are not a large-index ranking benchmark; use `--notes` to scale it and `--plain` for non-Git mode. Sample p95 is not an SLA. No token-savings percentage or Copilot speedup is claimed. Run the tool on representative repository/storage sizes before setting performance expectations.

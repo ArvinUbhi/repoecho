@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import collections
+from contextlib import contextmanager
 import datetime as dt
 import fnmatch
 import functools
@@ -18,14 +19,15 @@ import sqlite3
 import stat
 import subprocess
 import sys
+import tempfile
 import time
 import uuid
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 SCHEMA = "1"
 CACHE = ".repoecho"
 DEFAULTS = {"exclude": [], "max_file_bytes": 1_048_576,
-            "note_ttl_days": 30, "full_verify_hours": 24}
+            "note_ttl_days": 30, "full_verify_hours": 24, "max_note_versions": 8}
 SKIP_DIRS = {".git", ".hg", ".svn", CACHE, "node_modules", "target", "build",
              "dist", ".gradle", ".idea", ".venv", "venv", "__pycache__",
              ".next", "coverage", "vendor", "bin", "obj", ".ssh", ".aws"}
@@ -108,6 +110,240 @@ def root_path(path):
     return root
 
 
+def cache_directory(root, create=False):
+    cache = root / CACHE
+    if cache.is_symlink() or (cache.exists() and not cache.is_dir()):
+        raise CacheError("Cache directory must be a real local directory.")
+    if create:
+        cache.mkdir(mode=0o700, exist_ok=True)
+        ignore = cache / ".gitignore"
+        if ignore.is_symlink():
+            raise CacheError("Refusing a symlinked cache ignore file.")
+        try:
+            with ignore.open("x", encoding="utf-8") as handle:
+                handle.write("# Local RepoEcho knowledge; never commit this directory.\n*\n")
+        except FileExistsError:
+            pass
+    return cache
+
+
+@contextmanager
+def control_lock(cache):
+    """OS-released lock: a crashed settings writer cannot leave a stale lock."""
+    path = cache / "control.lock"
+    if path.is_symlink():
+        raise CacheError("Refusing a symlinked control lock.")
+    flags = os.O_RDWR | os.O_CREAT | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_BINARY", 0)
+    with os.fdopen(os.open(str(path), flags, 0o600), "r+b") as handle:
+        if os.fstat(handle.fileno()).st_size == 0:
+            handle.write(b"0")
+            handle.flush()
+        deadline = time.monotonic() + 5
+        if os.name == "nt":
+            import msvcrt
+            def lock():
+                handle.seek(0)
+                msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+            def unlock():
+                handle.seek(0)
+                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+        else:
+            import fcntl
+            def lock():
+                fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            def unlock():
+                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+        while True:
+            try:
+                lock()
+                break
+            except (BlockingIOError, OSError):
+                if time.monotonic() >= deadline:
+                    raise CacheError("Another process is updating RepoEcho controls; retry shortly.")
+                time.sleep(0.05)
+        try:
+            yield
+        finally:
+            unlock()
+
+
+class Controls:
+    """Cheap CLI gate, deliberately independent of the knowledge database."""
+    def __init__(self, root):
+        self.root = root_path(root)
+        self.cache = cache_directory(self.root)
+        self.path = self.cache / "control.json"
+        self.branch, self.branch_kind = self.current_branch()
+        self.data = self.read()
+
+    def current_branch(self):
+        if not shutil.which("git"):
+            return None, "git_unavailable"
+        probe = subprocess.run(["git", "-C", str(self.root), "rev-parse", "--show-toplevel"],
+                               capture_output=True, timeout=30)
+        if probe.returncode:
+            if "not a git repository" in probe.stderr.decode(errors="replace").lower():
+                return None, "non_git"
+            raise CacheError("Git rejected this directory; cannot determine branch controls.")
+        result = subprocess.run(["git", "-C", str(self.root), "symbolic-ref", "--quiet", "--short", "HEAD"],
+                                capture_output=True, timeout=30)
+        if result.returncode == 1:
+            return None, "detached"
+        if result.returncode:
+            raise CacheError("Cannot determine the current Git branch.")
+        return result.stdout.decode("utf-8").strip(), "named"
+
+    def read(self):
+        if self.path.is_symlink():
+            raise CacheError("Refusing symlinked mode controls.")
+        if not self.path.exists():
+            return {"version": 1, "skill_enabled": True, "cache_enabled": True,
+                    "branch_default": True, "branches": {}, "updated_at": None}
+        data = json.loads(self.path.read_text(encoding="utf-8"))
+        expected = {"version", "skill_enabled", "cache_enabled", "branch_default", "branches", "updated_at"}
+        if not isinstance(data, dict) or set(data) != expected or data.get("version") != 1:
+            raise CacheError("Invalid RepoEcho controls; repair .repoecho/control.json before continuing.")
+        if any(type(data[key]) is not bool for key in ("skill_enabled", "cache_enabled", "branch_default")):
+            raise CacheError("Mode controls must be booleans.")
+        if not isinstance(data["branches"], dict) or not all(isinstance(k, str) and k and type(v) is bool for k, v in data["branches"].items()):
+            raise CacheError("Invalid per-branch controls.")
+        if data["updated_at"] is not None and not isinstance(data["updated_at"], str):
+            raise CacheError("Invalid controls timestamp.")
+        return data
+
+    def report(self):
+        branch_enabled = self.data["branches"].get(self.branch, self.data["branch_default"])
+        reasons = []
+        if not self.data["skill_enabled"]:
+            reasons.append("skill_off")
+        if not self.data["cache_enabled"]:
+            reasons.append("cache_off")
+        if not branch_enabled:
+            reasons.append("branch_off")
+        return {"skill": "on" if self.data["skill_enabled"] else "off",
+                "cache": "on" if self.data["cache_enabled"] else "off",
+                "current_branch": self.branch, "branch_kind": self.branch_kind,
+                "branch": "on" if branch_enabled else "off",
+                "branch_rule": "override" if self.branch in self.data["branches"] else "default",
+                "branch_default": "on" if self.data["branch_default"] else "off",
+                "branch_overrides": {k: "on" if v else "off" for k, v in sorted(self.data["branches"].items())},
+                "effective_enabled": not reasons, "bypass_reasons": reasons,
+                "updated_at": self.data["updated_at"]}
+
+    def set(self, control, value):
+        if value == "status":
+            return self.report()
+        if control == "branch" and value != "all" and self.branch is None:
+            raise CacheError("Branch controls require a named Git branch. Use mode/cache on/off here.")
+        cache = cache_directory(self.root, create=True)
+        with control_lock(cache):
+            self.data = self.read()  # Preserve concurrent changes to independent controls.
+            if control in ("mode", "cache"):
+                self.data["skill_enabled" if control == "mode" else "cache_enabled"] = value == "on"
+            elif value == "all":
+                self.data.update(branch_default=True, branches={})
+            elif value == "only":
+                self.data.update(branch_default=False, branches={self.branch: True})
+            elif value == "inherit":
+                self.data["branches"].pop(self.branch, None)
+            else:
+                self.data["branches"][self.branch] = value == "on"
+            self.data["updated_at"] = utc()
+            fd, name = tempfile.mkstemp(prefix=".control-", suffix=".json", dir=cache)
+            try:
+                with os.fdopen(fd, "w", encoding="utf-8") as handle:
+                    handle.write(json.dumps(self.data, indent=2) + "\n")
+                    handle.flush()
+                    os.fsync(handle.fileno())
+                os.replace(name, self.path)
+            finally:
+                if os.path.exists(name):
+                    os.unlink(name)
+        return self.report()
+
+
+class GitTracker:
+    """Git supplies change hints; source hashes still decide knowledge validity."""
+    def __init__(self, root):
+        self.root = root
+        self.changed = set()
+        self.status_map = {}
+
+    def run(self, *args):
+        return subprocess.run(["git", "-C", str(self.root), *args], capture_output=True, timeout=30)
+
+    def snapshot(self, previous):
+        if not shutil.which("git"):
+            return {"available": False, "reason": "git_unavailable"}
+        probe = self.run("rev-parse", "--show-toplevel")
+        if probe.returncode:
+            if "not a git repository" in probe.stderr.decode(errors="replace").lower():
+                return {"available": False, "reason": "non_git"}
+            raise CacheError("Git repository discovery failed.")
+        top = Path(os.fsdecode(probe.stdout).strip()).resolve()
+        prefix = self.root.relative_to(top).as_posix()
+        branch_result = self.run("symbolic-ref", "--quiet", "--short", "HEAD")
+        if branch_result.returncode not in (0, 1):
+            raise CacheError("Git branch inspection failed.")
+        branch = branch_result.stdout.decode("utf-8").strip() if branch_result.returncode == 0 else None
+        head_result = self.run("rev-parse", "--verify", "--quiet", "HEAD")
+        head = head_result.stdout.decode("ascii").strip() if head_result.returncode == 0 else None
+        status = self.run("status", "--porcelain=v1", "-z", "--untracked-files=all", "--ignore-submodules=dirty", "--", ".")
+        if status.returncode:
+            raise CacheError("Git status failed; no cache result served.")
+        records = status.stdout.split(b"\x00")
+        statuses, untracked = [], []
+        index = 0
+        while index < len(records) and records[index]:
+            record = os.fsdecode(records[index])
+            code, path = record[:2], record[3:]
+            if prefix != ".":
+                path = path[len(prefix) + 1:] if path.startswith(prefix + "/") else path
+            statuses.append({"status": code, "path": path})
+            if code == "??":
+                untracked.append(path)
+            if "R" in code or "C" in code:
+                index += 1  # Porcelain -z includes the original rename/copy path next.
+            index += 1
+
+        def diff(*refs):
+            result = self.run("diff", "--name-only", "-z", "--no-renames", "--no-ext-diff",
+                              "--no-textconv", "--relative", *refs, "--", ".")
+            if result.returncode:
+                return None
+            return sorted(set(os.fsdecode(p) for p in result.stdout.split(b"\x00") if p))
+
+        staged, unstaged = diff("--cached"), diff()
+        if staged is None or unstaged is None:
+            raise CacheError("Git working-tree diff failed; no cache result served.")
+        old_head = previous.get("head")
+        head_changed = old_head != head
+        transition = []
+        history_complete = True
+        if old_head and head and head_changed:
+            if re.fullmatch(r"[0-9a-f]{40,64}", old_head):
+                transition = diff(old_head, head)
+            else:
+                transition = None
+            if transition is None:
+                history_complete, transition = False, []
+        self.status_map = {entry["path"]: entry["status"] for entry in statuses}
+        previous_dirty = previous.get("dirty_paths", {})
+        self.changed = set(transition) | {p for p in set(previous_dirty) | set(self.status_map)
+                                           if previous_dirty.get(p) != self.status_map.get(p)}
+        return {"available": True, "branch": branch, "head": head,
+                "previous_branch": previous.get("branch"), "previous_head": old_head,
+                "branch_changed": previous.get("branch") != branch,
+                "head_changed": head_changed, "dirty": bool(statuses),
+                "status": statuses[:100], "status_count": len(statuses),
+                "staged": staged[:100], "staged_count": len(staged),
+                "unstaged": unstaged[:100], "unstaged_count": len(unstaged),
+                "untracked": sorted(untracked)[:100], "untracked_count": len(untracked),
+                "between_heads": transition[:100], "between_heads_count": len(transition),
+                "history_complete": history_complete,
+                "fallback": None if history_complete else "full_content_scan"}
+
+
 class Memory:
     def __init__(self, root):
         self.db = None
@@ -131,12 +367,14 @@ class Memory:
             if not isinstance(raw, dict) or set(raw) - set(DEFAULTS):
                 raise CacheError("Unknown configuration keys; see references/cache-contract.md.")
             self.config.update(raw)
-        for key in ("max_file_bytes", "note_ttl_days", "full_verify_hours"):
+        for key in ("max_file_bytes", "note_ttl_days", "full_verify_hours", "max_note_versions"):
             val = self.config[key]
             if isinstance(val, bool) or not isinstance(val, (int, float)) or not math.isfinite(val) or val <= 0:
                 raise CacheError(key + " must be a finite positive number.")
         if not isinstance(self.config["max_file_bytes"], int):
             raise CacheError("max_file_bytes must be an integer.")
+        if not isinstance(self.config["max_note_versions"], int):
+            raise CacheError("max_note_versions must be an integer.")
         if not isinstance(self.config["exclude"], list) or not all(isinstance(x, str) for x in self.config["exclude"]):
             raise CacheError("exclude must be an array of glob strings.")
         self.excludes = list(self.config["exclude"])
@@ -152,19 +390,7 @@ class Memory:
                               "exclude": self.excludes,
                               "skill": [(p.name, hashlib.sha256(p.read_bytes()).hexdigest())
                                         for p in policy_files if p.exists()]})
-        cache = self.root / CACHE
-        if cache.is_symlink() or (cache.exists() and not cache.is_dir()):
-            raise CacheError("Cache directory must be a real local directory.")
-        cache.mkdir(mode=0o700, exist_ok=True)
-        # Keep local knowledge out of normal Git adds without changing project files.
-        ignore = cache / ".gitignore"
-        if ignore.is_symlink():
-            raise CacheError("Refusing a symlinked cache ignore file.")
-        try:
-            with ignore.open("x", encoding="utf-8") as handle:
-                handle.write("# Local RepoEcho knowledge; never commit this directory.\n*\n")
-        except FileExistsError:
-            pass
+        cache = cache_directory(self.root, create=True)
         db_path = cache / "cache.sqlite3"
         for suffix in ("", "-wal", "-shm", "-journal"):
             if Path(str(db_path) + suffix).is_symlink():
@@ -295,7 +521,10 @@ class Memory:
     def scan(self, full=False):
         start = time.perf_counter()
         now = time.time()
+        tracker = GitTracker(self.root)
+        git_state = tracker.snapshot(json.loads(self.meta("git_snapshot") or "{}"))
         full = bool(full or self.meta("policy") != self.policy or
+                    not git_state.get("history_complete", True) or
                     now - float(self.meta("full_verified") or 0) >= self.config["full_verify_hours"] * 3600)
         hashed, reused = 0, 0
         skipped = collections.Counter()
@@ -348,7 +577,7 @@ class Memory:
                     continue
                 previous = old.get(rel)
                 sig = packed(signature(st))
-                if not full and previous and previous["sig"] == sig:
+                if not full and rel not in tracker.changed and previous and previous["sig"] == sig:
                     current[rel] = previous
                     reused += 1
                     continue
@@ -370,6 +599,8 @@ class Memory:
             self.db.execute("DELETE FROM receipts WHERE created < ?", (now - 86400,))
             self.set_meta("policy", self.policy)
             self.set_meta("last_scan", utc())
+            self.set_meta("git_snapshot", packed({"branch": git_state.get("branch"), "head": git_state.get("head"),
+                                                   "dirty_paths": tracker.status_map}))
             if full:
                 self.set_meta("full_verified", now)
             self.db.commit()
@@ -377,10 +608,12 @@ class Memory:
             self.db.rollback()
             raise
         self.manifest = current
+        self.git_state = git_state
         self.scan_result = {"files": len(current), "hashed": hashed, "stat_reused": reused,
                             "added": len(set(current) - set(old)), "removed": len(removed),
                             "changed": sum(old[x]["hash"] != v["hash"] for x, v in current.items() if x in old),
                             "full": full, "skipped": dict(skipped), "discovery": self.discovery,
+                            "git": git_state, "repository_id": digest(str(self.root)),
                             "checked_at": utc(), "elapsed_ms": round((time.perf_counter() - start) * 1000, 2)}
         return self.scan_result
 
@@ -433,7 +666,9 @@ class Memory:
         if sum(len(x["content"]) for x in files) > max_chars:
             raise CacheError("Capture exceeds --max-chars. Select fewer files or raise the explicit budget.")
         evidence = {"policy": self.policy, "sources": hashes,
-                    "scopes": {p: self.scope_hash(p, True) for p in scopes}, "captured_at": utc()}
+                    "scopes": {p: self.scope_hash(p, True) for p in scopes}, "captured_at": utc(),
+                    "origin": {"repository_id": digest(str(self.root)),
+                               "branch": self.git_state.get("branch"), "commit": self.git_state.get("head")}}
         receipt = uuid.uuid4().hex
         with self.db:
             self.db.execute("INSERT INTO receipts VALUES (?,?,?)", (receipt, packed(evidence), time.time()))
@@ -468,18 +703,30 @@ class Memory:
             generated = utc()
             expiry = time.time() + self.config["note_ttl_days"] * 86400
             evidence.update(expires_epoch=expiry, expires_at=utc(expiry))
-            note.update(evidence=evidence, generated_at=generated)
+            revision = digest({key: evidence[key] for key in ("policy", "sources", "scopes")})
+            note.update(evidence=evidence, generated_at=generated, revision=revision)
+            storage_id = note["id"] + "@" + revision
             search = " ".join(tokens(" ".join([note["title"], note["summary"],
                      *note["facts"], *note["inferences"], *note["tags"], *evidence["sources"]])))
             self.db.execute("INSERT OR REPLACE INTO notes VALUES (?,?,?,?)",
-                            (note["id"], packed(note), search, generated))
+                            (storage_id, packed(note), search, generated))
             if self.fts:
-                self.db.execute("DELETE FROM search_notes WHERE id=?", (note["id"],))
-                self.db.execute("INSERT INTO search_notes VALUES (?,?)", (note["id"], search))
+                self.db.execute("DELETE FROM search_notes WHERE id=?", (storage_id,))
+                self.db.execute("INSERT INTO search_notes VALUES (?,?)", (storage_id, search))
+            prefix = note["id"] + "@"
+            versions = self.db.execute("SELECT id FROM notes WHERE id=? OR substr(id,1,?)=? "
+                                       "ORDER BY generated_at DESC, rowid DESC",
+                                       (note["id"], len(prefix), prefix)).fetchall()
+            # Keep the just-written revision plus the newest other revisions.
+            others = [row[0] for row in versions if row[0] != storage_id]
+            for old_id in others[self.config["max_note_versions"] - 1:]:
+                self.db.execute("DELETE FROM notes WHERE id=?", (old_id,))
+                if self.fts:
+                    self.db.execute("DELETE FROM search_notes WHERE id=?", (old_id,))
             self.db.execute("DELETE FROM receipts WHERE id=?", (receipt,))
             self.db.commit()
             return {"saved": note["id"], "generated_at": generated, "expires_at": evidence["expires_at"],
-                    "sources": len(evidence["sources"]), "scopes": list(evidence["scopes"])}
+                    "revision": revision, "sources": len(evidence["sources"]), "scopes": list(evidence["scopes"])}
         except Exception:
             self.db.rollback()
             raise
@@ -502,14 +749,17 @@ class Memory:
     def query(self, query, limit=5, max_chars=12000):
         self.scan()
         hits, stale, omitted = [], [], 0
+        returned_ids = set()
         used, checked = 0, 0
         for row in self.ranked(query):
             note = json.loads(row[0])
+            if note["id"] in returned_ids:
+                continue
             checked += 1
             reason = self.validity(note["evidence"])
             if reason:
                 if len(stale) < 20:
-                    stale.append({"id": note["id"], "reason": reason})
+                    stale.append({"id": note["id"], "revision": note.get("revision"), "reason": reason})
                 continue
             result = dict(note)
             result["verified_at"] = utc()
@@ -519,10 +769,11 @@ class Memory:
                 omitted += 1
                 continue
             hits.append(result)
+            returned_ids.add(note["id"])
             used += cost
             if len(hits) >= limit:
                 break
-        return {"hits": hits, "stale": stale, "budget_omitted": omitted,
+        return {"hits": hits, "stale": [x for x in stale if x["id"] not in returned_ids], "budget_omitted": omitted,
                 "notes_considered": checked, "content_chars": used,
                 "search_backend": "fts5_bm25" if self.fts else "lexical_fallback",
                 "scan": self.scan_result, "source_files_verified": len(self.verified),
@@ -543,7 +794,7 @@ class Memory:
         for row in self.db.execute("SELECT payload FROM notes ORDER BY id"):
             note = json.loads(row[0])
             reason = self.validity(note["evidence"], strict=False)
-            notes.append({"id": note["id"], "state": "stale" if reason else "candidate_needs_query_verification",
+            notes.append({"id": note["id"], "revision": note.get("revision"), "state": "stale" if reason else "candidate_needs_query_verification",
                           "reason": reason})
         return {"scan": self.scan_result, "candidate_files": candidates,
                 "build_files": sorted(p for p in paths if PurePosixPath(p).name in BUILD_NAMES)[:100],
@@ -552,11 +803,14 @@ class Memory:
                 "next": "Capture a small relevant file set, synthesize one note, bind it using the receipt."}
 
     def forget(self, note_id):
+        prefix = note_id + "@"
         with self.db:
-            count = self.db.execute("DELETE FROM notes WHERE id=?", (note_id,)).rowcount
+            ids = [row[0] for row in self.db.execute("SELECT id FROM notes WHERE id=? OR substr(id,1,?)=?",
+                                                    (note_id, len(prefix), prefix))]
+            self.db.executemany("DELETE FROM notes WHERE id=?", ((x,) for x in ids))
             if self.fts:
-                self.db.execute("DELETE FROM search_notes WHERE id=?", (note_id,))
-        return {"forgotten": note_id, "existed": bool(count)}
+                self.db.executemany("DELETE FROM search_notes WHERE id=?", ((x,) for x in ids))
+        return {"forgotten": note_id, "existed": bool(ids), "versions_removed": len(ids)}
 
 
 def positive(value):
@@ -571,6 +825,12 @@ def main(argv=None):
     parser.add_argument("--version", action="version", version=VERSION)
     parser.add_argument("--root", default=".", help="Repository or selected subtree; default current directory")
     sub = parser.add_subparsers(dest="command", required=True)
+    for name, description in (("mode", "Turn the RepoEcho workflow on/off for this checkout"),
+                              ("cache", "Enable/disable cache reads and writes while keeping the skill available")):
+        setting = sub.add_parser(name, help=description)
+        setting.add_argument("value", nargs="?", choices=("on", "off", "status"), default="status")
+    branch = sub.add_parser("branch", help="Control caching for the current named Git branch")
+    branch.add_argument("value", nargs="?", choices=("on", "off", "inherit", "only", "all", "status"), default="status")
     scan = sub.add_parser("scan", help="Incrementally update file hashes; no source text returned")
     scan.add_argument("--full", action="store_true", help="Bypass stat reuse and rehash all eligible files")
     plan = sub.add_parser("plan", help="Find learning entry points and stale note IDs")
@@ -593,6 +853,15 @@ def main(argv=None):
     args = parser.parse_args(argv)
     memory = None
     try:
+        controls = Controls(args.root)
+        if args.command in ("mode", "cache", "branch"):
+            print(json.dumps({"controls": controls.set(args.command, args.value)}, indent=2))
+            return 0
+        state = controls.report()
+        if not state["effective_enabled"]:
+            print(json.dumps({"state": "bypassed", "controls": state, "hits": [],
+                              "next": "Read repository source directly. No knowledge database was opened, read or written."}, indent=2))
+            return 0
         memory = Memory(args.root)
         if args.command == "scan":
             result = memory.scan(args.full)
@@ -607,6 +876,7 @@ def main(argv=None):
             result = memory.query(args.text, args.limit, args.max_chars)
         else:
             result = memory.forget(args.id)
+        result["controls"] = state
         print(json.dumps(result, indent=2, ensure_ascii=True))
         return 0
     except (CacheError, OSError, ValueError, sqlite3.Error, subprocess.SubprocessError) as exc:

@@ -2,7 +2,7 @@
 
 ## Storage and two-pass design
 
-`.repoecho/cache.sqlite3` stores a file manifest, compact LLM-authored notes, an FTS5 search index when available, and short-lived capture receipts. It does not store full source files. SQLite transactions and a five-second busy timeout serialize writes; interrupted writes commit completely or roll back. Use a local filesystem, not a shared/network SQLite cache. Each cache is bound to its resolved root path, so copied caches are rejected. Separate worktrees get separate caches. Notes may be reused across branches if their captured evidence is identical.
+`.repoecho/cache.sqlite3` stores a file manifest, compact LLM-authored note revisions, an FTS5 search index when available, Git change-tracking metadata, and short-lived capture receipts. It does not store full source files. SQLite transactions and a five-second busy timeout serialize writes; interrupted writes commit completely or roll back. Use a local filesystem, not a shared/network SQLite cache. Each cache is bound to its resolved root path, so copied caches are rejected. Separate worktrees get separate caches. Notes may be reused across branches if their captured evidence is identical. Distinct evidence revisions are retained for branch return, bounded by `max_note_versions`.
 
 The program has no provider integration, embeddings, background daemon, API key, network calls, or pip dependencies. Python 3.10+ with `sqlite3` is required. Copilot performs synthesis under its existing permissions. FTS5 uses BM25 ranking over note content, identifiers, tags and evidence paths; a token-overlap fallback works when the Python SQLite build lacks FTS5. CamelCase and snake_case terms are expanded for lexical lookup. This is not semantic embedding search; try component names or synonyms after a miss.
 
@@ -42,7 +42,8 @@ Optional root `.repoecho.json`:
   "exclude": ["fixtures/private/**", "**/generated/**"],
   "max_file_bytes": 1048576,
   "note_ttl_days": 30,
-  "full_verify_hours": 24
+  "full_verify_hours": 24,
+  "max_note_versions": 8
 }
 ```
 
