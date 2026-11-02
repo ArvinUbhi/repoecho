@@ -1,0 +1,4 @@
+interface:
+  display_name: "RepoEcho"
+  short_description: "Fast repository memory with hash-checked retrieval"
+  default_prompt: "Use $repoecho to learn this repository and retrieve fresh, source-linked knowledge."

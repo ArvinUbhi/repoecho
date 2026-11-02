@@ -1,0 +1,5 @@
+__pycache__/
+*.py[cod]
+.repoecho/
+.venv/
+.DS_Store
