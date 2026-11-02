@@ -1,6 +1,6 @@
 # Validation
 
-Recorded on 2 November 2026. All 41 tests passed locally on Linux with Python 3.12.14; this is not a claim of a live GitHub Copilot CLI run. Copilot CLI was not installed in the build environment. Format, installation locations and slash commands were checked against GitHub's official documentation linked in the README.
+Recorded on 2 November 2026. All 43 tests passed locally on Linux with Python 3.12.14; this is not a claim of a live GitHub Copilot CLI run. Copilot CLI was not installed in the build environment. Format, installation locations and slash commands were checked against GitHub's official documentation linked in the README.
 
 ## Behavioral checks
 
@@ -17,6 +17,7 @@ Run `python3 -m unittest discover -s tests -v` from the repository root. The sui
 - Binary/secret-path/generated/large-file exclusions, custom glob behavior, symlink and traversal rejection, root identity and corrupt-cache failure.
 - FTS and fallback search, concurrent CLI processes, note deletion and absence of source blobs from storage.
 - Complete personal/project installation and overwrite protection.
+- Windows path-stat versus descriptor-stat timestamp differences, while still rejecting metadata changes during a read. See [CPython issue 157671](https://github.com/python/cpython/issues/157671).
 
 The CI workflow declares Python 3.10 and 3.13 on Linux, macOS and Windows. A declared matrix is not evidence of successful remote runs; consult GitHub Actions for actual results. Symlink tests skip when the platform does not permit creating symlinks.
 

@@ -9,6 +9,7 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest import mock
 
@@ -100,6 +101,35 @@ class CacheTests(unittest.TestCase):
         self.write(self.source, path.read_text().replace("stop", "halt"))
         os.utime(path, ns=(old_stat.st_atime_ns, old_stat.st_mtime_ns))
         self.assertEqual(m.query("shutdown")["hits"], [])
+
+    def test_windows_stat_and_fstat_ctime_differ_for_unchanged_file(self):
+        m = self.open()
+        real_fstat = os.fstat
+        def descriptor_stat(fd):
+            value = real_fstat(fd)
+            return SimpleNamespace(st_size=value.st_size, st_mtime_ns=value.st_mtime_ns,
+                                   st_ctime_ns=value.st_ctime_ns + 1_000_000,
+                                   st_ino=value.st_ino, st_dev=value.st_dev, st_mode=value.st_mode)
+        with mock.patch.object(repoecho.os, "fstat", side_effect=descriptor_stat):
+            self.learn()
+            result = m.query("shutdown")
+        self.assertEqual(len(result["hits"]), 1)
+        self.assertEqual(result["scan"]["hashed"], 0)
+
+    def test_descriptor_timestamp_change_during_read_still_rejected(self):
+        m = self.open()
+        real_fstat = os.fstat
+        count = 0
+        def changing_stat(fd):
+            nonlocal count
+            count += 1
+            value = real_fstat(fd)
+            return SimpleNamespace(st_size=value.st_size, st_mtime_ns=value.st_mtime_ns,
+                                   st_ctime_ns=value.st_ctime_ns + count,
+                                   st_ino=value.st_ino, st_dev=value.st_dev, st_mode=value.st_mode)
+        with mock.patch.object(repoecho.os, "fstat", side_effect=changing_stat):
+            with self.assertRaisesRegex(repoecho.CacheError, "changed during read"):
+                m.read_source(self.source)
 
     def test_strict_query_rehashes_even_if_manifest_signature_lies(self):
         m = self.learn()

@@ -236,6 +236,7 @@ class Memory:
     def read_source(self, rel):
         path = self.safe_path(rel)
         for _ in range(3):
+            path_before = path.lstat()
             flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_BINARY", 0)
             with os.fdopen(os.open(str(path), flags), "rb") as handle:
                 before = os.fstat(handle.fileno())
@@ -247,14 +248,23 @@ class Memory:
                 after = os.fstat(handle.fileno())
             if len(data) > self.config["max_file_bytes"]:
                 return None
-            if signature(before) == signature(after) == signature(path.lstat()):
+            path_after = path.lstat()
+            # Windows CPython may use creation time for lstat().st_ctime_ns
+            # and change time for fstat().st_ctime_ns (python/cpython#157671).
+            # Compare each API with itself, and bridge them by identity/size/mtime.
+            same_open_file = (os.path.samestat(after, path_after) and
+                              after.st_size == path_after.st_size and
+                              after.st_mtime_ns == path_after.st_mtime_ns)
+            if (signature(before) == signature(after) and
+                    signature(path_before) == signature(path_after) and
+                    stat.S_ISREG(path_after.st_mode) and same_open_file):
                 if b"\x00" in data:
                     return None
                 try:
                     content = data.decode("utf-8")
                 except UnicodeDecodeError:
                     return None
-                return hashlib.sha256(data).hexdigest(), signature(after), content
+                return hashlib.sha256(data).hexdigest(), signature(path_after), content
         raise CacheError("File changed during read; retry when stable: " + rel)
 
     def paths(self):
