@@ -1,6 +1,6 @@
 # Standing RepoEcho instructions
 
-Append the following section to `.github/copilot-instructions.md` in your target repository. Preserve existing instructions. For a personal default across repositories, use `$HOME/.copilot/copilot-instructions.md` instead. The installer does not modify either file.
+Append the following section to your existing root `AGENTS.md`, or to `.github/copilot-instructions.md` in your target repository. Choose one file and preserve existing instructions. Do not put it in the RepoEcho checkout or installed skill folder. For a personal default across repositories, use `$HOME/.copilot/copilot-instructions.md` instead. The installer does not modify either file.
 
 ```markdown
 ## RepoEcho repository memory
@@ -61,4 +61,8 @@ or change permissions to hide an error. When useful, end with one short
 line naming reused/refreshed note IDs or explaining why caching was bypassed.
 ```
 
-In Copilot CLI, check `/instructions` to confirm the file is discovered and enabled. Ask a normal repository question, then request the reused note IDs and freshness to verify the workflow. This is guidance to the agent, not an enforced hook. Python 3.12 must be available to uv or downloadable.
+After adding or editing the file, run `/new` in Copilot CLI, then `/instructions` to confirm it is discovered and enabled. Alternatively, exit and run `copilot --continue` from your target repository. Active sessions do not immediately load instruction changes; `/skills reload` is for skills, not this instruction refresh. Saved notes persist across sessions.
+
+If only `AGENTS.md` appears, use that file or check that `.github/copilot-instructions.md` is in the target repository and has no extra `.txt` extension. See [GitHub's instruction-loading guidance](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions).
+
+ Ask a normal repository question, then request the reused note IDs and freshness to verify the workflow. This is guidance to the agent, not an enforced hook. Python 3.12 must be available to uv or downloadable.
