@@ -185,22 +185,63 @@ This creates a temporary sample repository and measures initial indexing, warm r
 
 Increase `--files` or `--notes` to test larger workloads. Save results for comparison by adding `> benchmark.json` to the command. These measurements cover the local cache helper; they do **not** measure Copilot thinking time or prove a particular LLM speedup.
 
-## Update or troubleshoot
+## Update to the latest version
 
-**ZIP download:** download and extract the latest ZIP, then run from its parent directory:
+**No `gh` or system Python needed. Your repository's saved notes and cache settings stay in place.** Updating the installed skill does not automatically update your `AGENTS.md` or Copilot instruction file.
+
+### Windows: ZIP installation
+
+1. Close Copilot before replacing the installed skill, to avoid folder-lock errors.
+2. [Download the latest ZIP](https://github.com/ArvinUbhi/repoecho/archive/refs/heads/main.zip) and extract it into a **fresh folder**. Open the extracted `repoecho-main` folder containing `tools` and `README.md`.
+3. Open PowerShell in that folder (type `powershell` in File Explorer's address bar), then paste:
 
 ```powershell
-uv run --no-project --python 3.12 .\repoecho-main\tools\install.py --replace
+uv run --no-project --python 3.12 .\tools\install.py --replace
 ```
 
-**Git clone:** from the directory containing your `repoecho` checkout:
+Wait for **Installed RepoEcho at ...**. Running an old downloaded copy only reinstalls that old version—download the latest ZIP first.
+
+### Git installation
+
+Open a terminal **inside your RepoEcho checkout**, then run:
 
 ```sh
-git -C repoecho pull --ff-only
-uv run --no-project --python 3.12 repoecho/tools/install.py --replace
+git pull --ff-only
+uv run --no-project --python 3.12 tools/install.py --replace
 ```
 
-Run `/skills reload` in Copilot after updating. ZIP downloads do not support `git pull`.
+These commands update the RepoEcho checkout, not your Java/application repository. ZIP downloads cannot use `git pull`.
+
+For a project-local installation, add `--project "C:\path\to\your-app"` to the install command. Use the same installation location as before. Add `--gh` only if you already use the optional GitHub CLI integration and have its prerequisites installed.
+
+### Load the update in Copilot
+
+Open Copilot in **your application repository**, then run:
+
+```text
+/skills reload
+/skills info repoecho
+```
+
+If you use the automatic instructions from this README, replace **only the RepoEcho section** in your chosen `AGENTS.md` or `.github/copilot-instructions.md` with the [current instructions above](#3-make-it-automatic). Preserve your other instructions. Then run:
+
+```text
+/new
+/instructions
+```
+
+Check that your instruction file is discovered and enabled. `/skills reload` reloads the installed skill; `/new` loads changes to standing instructions. Neither step clears your saved notes.
+
+Finally, ask:
+
+```text
+Use /repoecho to show its effective status, then retrieve a saved note
+for this repository and report its note ID and freshness.
+```
+
+If caching is off, that should be reported rather than silently enabled. If no valid note exists, ask Copilot to learn a relevant workflow.
+
+## Troubleshooting
 
 - **Python fails to start?** Run `uv python install 3.12`, then `uv run --python 3.12 python --version` before retrying setup.
 - **Access denied when replacing the skill?** Close Copilot sessions and retry. A folder lock or permissions may prevent replacement. For a project-local installation, use `--project "C:\path\to\your-app"` instead.
