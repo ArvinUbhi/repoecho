@@ -180,7 +180,7 @@ The script uses Git branch, status and diffs to identify changes, then validates
 | Change files or scope that the note depends on | Treat that revision as stale; Copilot reads the changed evidence and saves a refreshed revision when needed. |
 | Return to `main` | Reuse the earlier matching revision if it is still retained and within its review lifetime. |
 
-Different revisions of a note coexist, so learning a changed workflow on one branch does not simply overwrite the version learned on another. By default, up to **eight revisions per note** are retained and notes have a **30-day review lifetime**. Expired or evicted knowledge may need relearning. Reuse also depends on capturing adequate evidence: a note cannot detect dependencies its author omitted.
+Different revisions of a note coexist, so learning a changed workflow on one branch does not simply overwrite the version learned on another. RepoEcho keeps the latest learned revision for each named branch, plus recent extra revisions (eight by default), and notes have a **30-day review lifetime**. A branch return reuses a matching revision without relearning, including when other branches changed the same file. Identical evidence across branches shares one revision. Expired or older extra revisions may need relearning. Reuse also depends on capturing adequate evidence: a note cannot detect dependencies its author omitted.
 
 This avoids repeating the same learning and storage for every branch. Validation still costs file reads/hashing, and broad evidence scopes cost more than focused ones; it does not promise constant-time retrieval for every repository size.
 

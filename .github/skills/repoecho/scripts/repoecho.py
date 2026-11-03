@@ -718,6 +718,16 @@ class Memory:
             revision = digest({key: evidence[key] for key in ("policy", "sources", "scopes")})
             note.update(evidence=evidence, generated_at=generated, revision=revision)
             storage_id = note["id"] + "@" + revision
+            previous = self.db.execute("SELECT payload FROM notes WHERE id=?", (storage_id,)).fetchone()
+            if previous:
+                earlier = json.loads(previous["payload"])["evidence"].get("origin", {})
+                names = set(earlier.get("branches", []))
+                if earlier.get("branch"):
+                    names.add(earlier["branch"])
+                if evidence["origin"].get("branch"):
+                    names.add(evidence["origin"]["branch"])
+                evidence["origin"]["branches"] = sorted(names)
+                note["evidence"] = evidence
             search = " ".join(tokens(" ".join([note["title"], note["summary"],
                      *note["facts"], *note["inferences"], *note["tags"], *note["aliases"], *evidence["sources"]])))
             self.db.execute("INSERT OR REPLACE INTO notes VALUES (?,?,?,?)",
@@ -726,15 +736,33 @@ class Memory:
                 self.db.execute("DELETE FROM search_notes WHERE id=?", (storage_id,))
                 self.db.execute("INSERT INTO search_notes VALUES (?,?)", (storage_id, search))
             prefix = note["id"] + "@"
-            versions = self.db.execute("SELECT id FROM notes WHERE id=? OR substr(id,1,?)=? "
+            versions = self.db.execute("SELECT id, payload FROM notes WHERE id=? OR substr(id,1,?)=? "
                                        "ORDER BY generated_at DESC, rowid DESC",
                                        (note["id"], len(prefix), prefix)).fetchall()
-            # Keep the just-written revision plus the newest other revisions.
-            others = [row[0] for row in versions if row[0] != storage_id]
-            for old_id in others[self.config["max_note_versions"] - 1:]:
-                self.db.execute("DELETE FROM notes WHERE id=?", (old_id,))
+            # Keep one latest revision per originating named branch, plus recent
+            # revisions up to the configured base limit. Identical evidence has
+            # the same storage ID and is already shared across branches.
+            retained = {storage_id}
+            protected_branches = set()
+            for row in versions:
+                origin = json.loads(row["payload"])["evidence"].get("origin", {})
+                branches = set(origin.get("branches", []))
+                if origin.get("branch"):
+                    branches.add(origin["branch"])
+                new_branches = branches - protected_branches
+                if new_branches:
+                    retained.add(row["id"])
+                    protected_branches.update(new_branches)
+            for row in versions:
+                if len(retained) >= self.config["max_note_versions"]:
+                    break
+                retained.add(row["id"])
+            for row in versions:
+                if row["id"] in retained:
+                    continue
+                self.db.execute("DELETE FROM notes WHERE id=?", (row["id"],))
                 if self.fts:
-                    self.db.execute("DELETE FROM search_notes WHERE id=?", (old_id,))
+                    self.db.execute("DELETE FROM search_notes WHERE id=?", (row["id"],))
             self.db.execute("DELETE FROM receipts WHERE id=?", (receipt,))
             self.db.commit()
             return {"saved": note["id"], "generated_at": generated, "expires_at": evidence["expires_at"],
@@ -754,7 +782,7 @@ class Memory:
         if self.fts:
             expression = " OR ".join('"' + search_stem(w).replace('"', '""') + '"*' for w in terms)
             rows = self.db.execute("SELECT n.payload FROM search_notes s JOIN notes n ON n.id=s.id "
-                                   "WHERE search_notes MATCH ? ORDER BY bm25(search_notes), n.id LIMIT 256",
+                                   "WHERE search_notes MATCH ? ORDER BY bm25(search_notes), n.id",
                                    (expression,))
         else:
             rows = self.db.execute("SELECT payload FROM notes")

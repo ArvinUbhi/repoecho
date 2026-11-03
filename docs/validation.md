@@ -72,3 +72,7 @@ A local synthetic Git benchmark (`python tools/benchmark.py --files 200 --notes 
 `tools/retrieval_eval.py` creates disposable source and notes for process shutdown, host shutdown and configuration reload. Six cases include paraphrases, competing components and an unrelated question. The checked run passed 6/6 at rank 1 and withheld a changed-source note. `tests/test_repoecho.py` also checks FTS/fallback ranking and evidence invalidation. This fixture measures retrieval quality for those cases only, not all natural-language questions.
 
 `tools/usage_study.py` creates a local CSV for manually recording matched Copilot runs with caching off, cold and warm. It reports AIC, elapsed time, helper calls and correctness. No AIC result can be claimed until the user's actual Copilot runs are recorded. Synthetic helper benchmarks remain separate.
+
+## Same-file branch switching
+
+Git integration tests switch between main and feature branches that modify the same file and retain different workflow revisions. A many-branch test verifies that an older branch revision remains reusable after ten later branch revisions, and that branches with identical evidence share one revision. Query still hashes current working-tree evidence and withholds mismatched revisions. This does not cover unrelated external dependencies that were not captured.

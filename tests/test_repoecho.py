@@ -439,6 +439,60 @@ class CacheTests(unittest.TestCase):
         self.git("checkout", "main")
         self.assertEqual(len(m.query("shutdown")["hits"]), 1)
 
+    def test_same_file_two_branch_versions_selected_on_each_switch(self):
+        self.git_init()
+        self.git("add", ".")
+        self.git("commit", "-m", "main source")
+        m = self.open()
+        main_receipt = m.capture([self.source], [], 24000)["receipt"]
+        m.remember({"id": "workflow-stop", "title": "Stop process", "summary": "Main stops immediately.",
+                    "aliases": ["stop running job"]}, main_receipt)
+        main_rev = m.query("stop running job", limit=1, compact=True)["hits"][0]["summary"]
+        self.git("switch", "-c", "feature")
+        self.write(self.source, "package example; class ProcessManager { void stop() { /* drain */ } }\n")
+        self.git("add", self.source)
+        self.git("commit", "-m", "feature source")
+        self.assertEqual(m.query("stop running job")["hits"], [])
+        feature_receipt = m.capture([self.source], [], 24000)["receipt"]
+        m.remember({"id": "workflow-stop", "title": "Stop process", "summary": "Feature drains first.",
+                    "aliases": ["stop running job"]}, feature_receipt)
+        self.assertEqual(m.query("stop running job", limit=1, compact=True)["hits"][0]["summary"], "Feature drains first.")
+        self.git("switch", "main")
+        main_result = m.query("stop running job", limit=1, compact=True)
+        self.assertEqual(main_result["hits"][0]["summary"], main_rev)
+        self.assertEqual(main_result["stale"], [])
+        self.git("switch", "feature")
+        self.assertEqual(m.query("stop running job", limit=1, compact=True)["hits"][0]["summary"], "Feature drains first.")
+        self.assertEqual(m.db.execute("SELECT COUNT(*) FROM notes WHERE id LIKE 'workflow-stop@%'").fetchone()[0], 2)
+
+    def test_many_branches_retain_their_same_file_revisions(self):
+        self.git_init()
+        self.git("add", ".")
+        self.git("commit", "-m", "main")
+        m = self.open()
+        def save(label):
+            receipt = m.capture([self.source], [], 24000)["receipt"]
+            m.remember({"id": "workflow-stop", "title": "Stop process",
+                        "summary": label, "aliases": ["stop running job"]}, receipt)
+        save("main")
+        self.git("switch", "-c", "shared-evidence")
+        save("main")
+        self.assertEqual(m.db.execute("SELECT COUNT(*) FROM notes WHERE id LIKE 'workflow-stop@%'").fetchone()[0], 1)
+        for i in range(10):
+            self.git("switch", "main")
+            self.git("switch", "-c", f"feature-{i}")
+            self.write(self.source, f"class Example {{ int branch = {i}; }}")
+            self.git("add", self.source)
+            self.git("commit", "-m", f"branch {i}")
+            save(f"feature-{i}")
+        self.git("switch", "main")
+        self.assertEqual(m.query("stop running job", limit=1)["hits"][0]["summary"], "main")
+        self.git("switch", "feature-0")
+        self.assertEqual(m.query("stop running job", limit=1)["hits"][0]["summary"], "feature-0")
+        self.git("switch", "shared-evidence")
+        self.assertEqual(m.query("stop running job", limit=1)["hits"][0]["summary"], "main")
+        self.assertEqual(m.db.execute("SELECT COUNT(*) FROM notes WHERE id LIKE 'workflow-stop@%'").fetchone()[0], 11)
+
     def test_git_subdirectory_is_bounded(self):
         self.git_init()
         self.write("module/src/Foo.java", "class Foo {}")
