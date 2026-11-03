@@ -1,5 +1,7 @@
 import json
 import os
+import re
+import shlex
 from pathlib import Path
 import subprocess
 import sys
@@ -24,7 +26,14 @@ class InstallTests(unittest.TestCase):
             launcher = Path(home) / ".local/bin" / ("repoecho.cmd" if os.name == "nt" else "repoecho")
             self.assertTrue(launcher.exists())
             self.assertIn("--python 3.12", launcher.read_text())
-            self.assertIn(str(target / "scripts/repoecho_cli.py"), launcher.read_text())
+            if os.name == "nt":
+                match = re.search(r'--script "([^"]+)"', launcher.read_text())
+                self.assertIsNotNone(match)
+                script = match.group(1)
+            else:
+                parts = shlex.split(launcher.read_text().splitlines()[-1])
+                script = parts[parts.index("--script") + 1]
+            self.assertTrue(Path(script).samefile(target / "scripts/repoecho_cli.py"))
             helper = target / "scripts/repoecho.py"
             result = subprocess.run([sys.executable, str(helper), "--root", home, "scan"], capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
