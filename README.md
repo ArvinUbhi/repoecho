@@ -8,16 +8,24 @@ The aim is less repeated exploration and more focused context for your task. It 
 
 ## Install once
 
-You need **GitHub Copilot CLI**, [GitHub CLI (`gh`)](https://cli.github.com/), [uv](https://docs.astral.sh/uv/getting-started/installation/) and Git. On Windows, use PowerShell with Git for Windows installed; it supplies the shell needed by the `gh` command.
+You need **GitHub Copilot CLI** and [uv](https://docs.astral.sh/uv/getting-started/installation/). Git enables branch tracking. **GitHub CLI (`gh`) is optional.**
 
-```sh
-gh repo clone ArvinUbhi/repoecho
-uv run --no-project --python '>=3.10' repoecho/tools/install.py --gh
+Download this repository using **Code → Download ZIP**, then extract it. In PowerShell, from the directory containing `repoecho-main`, run:
+
+```powershell
+uv run --no-project --python 3.12 .\repoecho-main\tools\install.py
 ```
 
-uv finds a compatible Python and downloads it if needed. Setup installs the skill and registers `gh repoecho`. No extra API key or Python packages are required. You can remove the downloaded checkout afterwards.
+Alternatively, if you use Git:
 
-Already installed? Add `--replace` to the second command.
+```sh
+git clone https://github.com/ArvinUbhi/repoecho.git
+uv run --no-project --python 3.12 repoecho/tools/install.py
+```
+
+uv finds Python 3.12 and downloads it if needed. Setup installs the complete Copilot skill. No extra API key or Python packages are required. You can remove the downloaded checkout afterwards.
+
+Already installed? Add `--replace` to the install command. Do not add `--gh` unless GitHub CLI is installed and you want its optional terminal commands.
 
 ## Use it in your repository
 
@@ -41,24 +49,36 @@ Use /repoecho to find the shutdown code and help me change it.
 
 Copilot retrieves relevant notes, checks that their sources still match, and learns anything missing before continuing. You do not need to write or manage notes yourself. Invoke `/repoecho` when you want this workflow; it does not automatically intercept every prompt.
 
-## Everyday controls
+## Everyday controls — no gh needed
 
-Run these in your terminal from anywhere inside the target Git repository:
+Ask Copilot directly:
 
-| Command | What it does |
-|---|---|
-| `gh repoecho status` | Show whether RepoEcho is active and why |
-| `gh repoecho on` / `gh repoecho off` | Enable or disable RepoEcho for this repository |
-| `gh repoecho cache on` / `gh repoecho cache off` | Enable or disable saved knowledge use |
-| `gh repoecho branch only` | Use caching only on the current branch |
-| `gh repoecho branch all` | Allow caching on every branch |
-| `gh repoecho branch off` / `gh repoecho branch on` | Disable or enable caching on the current branch |
-| `gh repoecho doctor` | Check your setup and show tool locations |
-| `gh repoecho --help` | Show command help |
+```text
+Use /repoecho to show its current status.
+Use /repoecho to turn caching off.
+Use /repoecho to turn caching on, using Python 3.12 through uv.
+Use /repoecho only on this branch.
+Use /repoecho on all branches.
+```
 
-The skill, cache and branch settings must all be on for caching to work. For example, `gh repoecho on` leaves a separately disabled cache off. Turning caching off keeps saved notes for later reuse. Use `status` to see the effective state without scanning your code.
+The skill, cache and branch settings must all be on for caching to work. Enabling the skill leaves a separately disabled cache off. Turning caching off keeps saved notes for later reuse.
 
-You can also ask Copilot: **“Use /repoecho to turn caching off”** or **“Use /repoecho only on this branch.”**
+For direct terminal control on Windows, run this from your target repository:
+
+```powershell
+$repoecho = "$HOME\.copilot\skills\repoecho\scripts\repoecho_cli.py"
+uv run --no-project --python 3.12 "$repoecho" status
+uv run --no-project --python 3.12 "$repoecho" cache off
+uv run --no-project --python 3.12 "$repoecho" branch only
+```
+
+Replace the last command with `on`, `off`, `cache on`, `branch all`, `doctor` or `--help` as needed. If Copilot selects an incompatible Python installation, tell it to use **`uv run --python 3.12`** for RepoEcho commands.
+
+### Optional GitHub CLI controls
+
+If you have [GitHub CLI](https://cli.github.com/) installed, add `--gh` when running setup (and `--replace` when updating). Windows also needs `sh`, supplied by Git for Windows. This registers shortcuts such as `gh repoecho status`, `gh repoecho cache off` and `gh repoecho branch only`.
+
+The generated gh launcher currently requests any Python 3.10 or newer. If uv selects a broken managed interpreter, use the explicit Python 3.12 commands above instead.
 
 ## Branches and multiple repositories
 
@@ -68,17 +88,21 @@ Each repository and linked worktree has its own local cache and settings. They a
 
 To select a repository explicitly:
 
-```sh
-gh repoecho --root /path/to/your-app status
+```powershell
+uv run --no-project --python 3.12 "$repoecho" --root "C:\path\to\your-app" status
 ```
+
+Use the `$repoecho` variable defined above. On macOS/Linux, the installed script is at `~/.copilot/skills/repoecho/scripts/repoecho_cli.py`.
 
 For non-Git directories, run commands from the same root directory each time or use `--root`.
 
 ## Run a benchmark
 
-```sh
-gh repoecho benchmark --files 2000 --notes 20 --runs 5
+```powershell
+uv run --no-project --python 3.12 "$repoecho" benchmark --files 2000 --notes 20 --runs 5
 ```
+
+Use the `$repoecho` variable defined above. With the optional gh setup, you can also run `gh repoecho benchmark`.
 
 This creates a temporary sample repository and measures initial indexing, warm retrieval, change detection and reuse after switching branches. It leaves your repository and cache untouched.
 
@@ -86,19 +110,26 @@ Increase `--files` or `--notes` to test larger workloads. Save results for compa
 
 ## Update or troubleshoot
 
-From the directory containing your downloaded `repoecho` checkout:
+**ZIP download:** download and extract the latest ZIP, then run from its parent directory:
+
+```powershell
+uv run --no-project --python 3.12 .\repoecho-main\tools\install.py --replace
+```
+
+**Git clone:** from the directory containing your `repoecho` checkout:
 
 ```sh
 git -C repoecho pull --ff-only
-uv run --no-project --python '>=3.10' repoecho/tools/install.py --gh --replace
+uv run --no-project --python 3.12 repoecho/tools/install.py --replace
 ```
 
-If you removed the checkout, clone it again first. Run `/skills reload` in Copilot after updating.
+Run `/skills reload` in Copilot after updating. ZIP downloads do not support `git pull`.
 
-- **Command unavailable?** Check that `gh` and `uv` are on your PATH, then rerun setup.
-- **Caching unexpectedly off?** Run `gh repoecho status` to identify the disabled setting.
+- **Python fails to start?** Run `uv python install 3.12`, then `uv run --python 3.12 python --version` before retrying setup.
+- **Access denied when replacing the skill?** Close Copilot sessions and retry. A folder lock or permissions may prevent replacement. For a project-local installation, use `--project "C:\path\to\your-app"` instead.
+- **Caching unexpectedly off?** Ask Copilot for RepoEcho status or run the direct `status` command above.
 - **Copilot cannot see the skill?** Run `/skills info repoecho` after reloading.
-- **Need project/team installation, offline use or alias repair?** See the [setup guide](.github/skills/repoecho/references/setup.md).
+- **Need offline use, team setup or optional gh alias repair?** See the [setup guide](.github/skills/repoecho/references/setup.md).
 
 ## More detail
 
