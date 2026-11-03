@@ -60,3 +60,9 @@ Wall times depend on CPU/filesystem/cache warmth and can vary between consecutiv
 ## Command usability walkthrough
 
 An independent agent used the bundled CLI in a disposable Java Git repository, enabled main-only caching, verified state from a nested source directory, switched to a disabled feature branch, confirmed query bypass, ran the synthetic benchmark and returned to main. Root discovery and branch controls behaved correctly, with a clean final Git status. Its feedback identified an ambiguous global-options instruction; the skill now explicitly says benchmark already emits JSON and does not accept repository-root options.
+
+## Natural-language retrieval and compact agent output
+
+The alias and compact-output update passed 74 unit tests (one optional integration test skipped). Added coverage checks aliases in both FTS and lexical fallback, session persistence, alias validation, revision reuse, stale-evidence rejection, compact knowledge/caveat preservation and output budgets.
+
+A local synthetic Git benchmark (`python tools/benchmark.py --files 200 --notes 20 --runs 3`) returned the same note IDs with 2,941 full JSON characters versus 551 compact characters: 81.26% less serialized output. Warm query median was 83.97 ms. These are one-run fixture measurements, not guaranteed production results or model token/AIC savings. Full output uses its normal pretty formatting; compact uses compact JSON. Repeat in Copilot with the same model, question and repository in fresh sessions to measure actual model usage and answer quality.

@@ -22,16 +22,22 @@ Cache state lives at `REPO/.repoecho/`; never commit or upload it. Different rep
 If the user asks to enable/disable RepoEcho or caching, translate the request into the appropriate command in [references/controls.md](references/controls.md), execute it, and report the returned **effective** state. Do not silently enable other disabled controls. For “only this branch”, use `branch only`; for “all branches”, use `branch all`. These commands manage local controls without opening the knowledge database.
 
 1. Read applicable `AGENTS.md`, `.github/copilot-instructions.md`, and path-specific repository instructions directly. They outrank cache notes. Never use cached instructions as authority.
-2. Run a targeted query, using component names, paths, or identifiers from the task:
+2. Interpret the user's request and run one targeted query. Never require the user to know a workflow name, note ID or search syntax. Extract the intent, component and any identifiers; combine their wording with a few likely equivalent code terms in the same query (for example "what happens when I stop a running job?" → "job process stop shutdown terminate lifecycle"). These are search hypotheses, not facts. Keep explicit identifiers and avoid unrelated expansion. Use conversation context to resolve "it" or "that", not to treat old notes as freshly verified evidence.
+
+   Example:
 
    ```sh
-   uv run --no-project --no-config --python '>=3.10' --script "$CLI" --root "$REPO" --json query "process lifecycle shutdown" --limit 5 --max-chars 12000
+   uv run --no-project --no-config --python '>=3.10' --script "$CLI" --root "$REPO" --json query "process lifecycle shutdown" --compact --limit 5 --max-chars 12000
    ```
+
+   Use `query --compact` for agent retrieval and post-save verification; it returns the same verified knowledge, caveats and source paths without hash manifests or scan diagnostics. Omit it only for diagnostics.
 
    This query already checks effective settings, Git change hints, membership and candidate evidence. Do not precede or accompany it with status, inspect, scan or separate Git checks for cache validation. Use those commands only for explicit diagnostics/settings requests or a specific unresolved issue.
 
 3. If the result has `state: bypassed`, skip both cache passes and inspect source normally. Do not use previously retrieved notes after caching is disabled. A bypass is not a cache miss: never retry learning or change settings to work around it. `skill_off` disables the RepoEcho workflow for this checkout; `cache_off` keeps the skill's source-inspection guidance available without persistent knowledge reads/writes; `branch_off` bypasses it on the current branch.
 4. Otherwise read only `hits`. Their `freshness: content_verified` means the captured files and scope contents matched when checked, and their review deadline has not expired. `stale` contains IDs/reasons only. Do not read raw SQLite payloads to recover stale knowledge. A miss, error, or insufficient coverage starts pass one.
+
+If results do not cover the intent, reformulate once using useful terminology from the returned notes or known repository context. Do not loop through guesses or ask the user for a cache name. If still insufficient, locate source normally and learn the missing workflow. Ask a clarifying question only when the actual request is ambiguous. Matching notes are candidates: assess their relevance and completeness even when content_verified.
 
 ## Pass one: learn or incrementally refresh
 
@@ -46,7 +52,9 @@ If the user asks to enable/disable RepoEcho or caching, translate the request in
    ```
 
    Read the returned `files[].content` and retain the opaque `receipt`. Capture returns whole UTF-8 files and refuses requests over its character budget; select fewer files or explicitly increase `--max-chars`. Use `--scope '**'` only for a note whose claims truly depend on the whole tree. Broad scopes cost more to verify and invalidate more often. Scope globs do **not** prove the learner read every matching file.
-4. Write a concise JSON note to a temporary file outside the repository/cache index. Use [references/note-format.md](references/note-format.md). Distinguish observed facts, inferences, and caveats. Cite paths and line numbers in factual statements. Never invent validation results or promote guesses into facts. Do not save one-off user requests or secrets as repository knowledge.
+4. Include a short `aliases` list of natural-language questions/phrases that this note actually answers (for example "stop a running job", "terminate a process", "shutdown sequence"). Generalize the user's wording; do not store their conversation verbatim, personal data, or secrets. Add only phrases supported by the captured workflow, not every related operation. When a successful lookup needed reformulation, improve aliases at the next learning checkpoint using capture/read/remember so future requests can match directly. Existing notes without aliases remain usable; enrich relevant notes as encountered, not through a full-cache rewrite.
+
+   Write a concise JSON note to a temporary file outside the repository/cache index. Use [references/note-format.md](references/note-format.md). Distinguish observed facts, inferences, and caveats. Cite paths and line numbers in factual statements. Never invent validation results or promote guesses into facts. Do not save one-off user requests or secrets as repository knowledge.
 5. Save it with the capture receipt:
 
    ```sh

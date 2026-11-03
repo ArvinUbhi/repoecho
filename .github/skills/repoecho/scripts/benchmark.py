@@ -87,6 +87,14 @@ def main(argv=None):
                     "p95_ms": round(sorted(elapsed)[max(0, math.ceil(len(elapsed) * 0.95) - 1)], 2)}, last
 
         warm, last = samples(("query", "topic0000"))
+        compact, _ = cli("query", "topic0000", "--compact")
+        assert [x["id"] for x in compact["hits"]] == [x["id"] for x in last["hits"]]
+        full_chars = len(json.dumps(last, indent=2, ensure_ascii=True)) + 1
+        compact_chars = len(module.packed(compact)) + 1
+        retrieval_output = {"full_json_chars": full_chars, "compact_json_chars": compact_chars,
+                            "reduction_percent": round(100 * (1 - compact_chars / full_chars), 2),
+                            "same_note_ids": True,
+                            "measurement": "Serialized helper output characters, not model tokens or AIC."}
         original_revision = last["hits"][0]["revision"]
         cli("mode", "off")
         mode_off, _ = samples(("query", "topic0000"), bypass=True)
@@ -129,7 +137,7 @@ def main(argv=None):
                           "warm_manifest_files_rehashed": last["scan"]["hashed"],
                           "warm_evidence_files_verified": last["source_files_verified"],
                           "note_chars_returned": last["content_chars"],
-                          "branch_return": branch_reuse,
+                          "branch_return": branch_reuse, "retrieval_output": retrieval_output,
                           "scope": "Synthetic UTF-8 Java files in a temporary directory; your repository is untouched. Timings include helper Python startup and Git work, but exclude outer gh/uv startup, LLM synthesis and model thinking time. p95 is a sample percentile, not an SLA."}, indent=2))
 
 

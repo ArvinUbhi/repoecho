@@ -73,6 +73,10 @@ source-backed findings at meaningful milestones without waiting to be
 asked. Verify saved notes, avoid rewriting unchanged notes, and refresh
 relevant notes after edits. Do not read or edit the raw cache database.
 
+Infer the intent of my normal request; do not require workflow names or
+note IDs. Use query --compact with my terms plus relevant equivalents. If needed, reformulate
+once before investigating source. Save useful alternative phrases in note
+aliases so later related requests can find the same knowledge.
 Prefer workflow-specific notes and improve them when follow-ups reveal
 missing steps or dependencies. A query already validates the cache; avoid
 redundant status/inspect/scan calls. Answer explanations directly from
@@ -106,6 +110,16 @@ note IDs and freshness returned by the script, and learn anything missing.
 ```
 
 Look for a relevant saved note marked `content_verified`. A successful capture alone does not save a note; the skill must also save it with `remember`. If no valid note exists, Copilot should read the source and refresh its knowledge.
+
+## Ask naturally — no workflow names to remember
+
+Ask **“What happens when I stop a running job?”** or **“How does process termination work?”** Copilot translates the request into relevant search terms and checks whether the returned notes answer it. You do not need to know that a saved note is called `workflow-shutdown`.
+
+As it learns, Copilot saves short alternative phrases alongside each note. Related wording can then find the same source-verified knowledge. If the first search is insufficient, it can reformulate once before investigating source and improving the note for next time. It will not assume two operations are equivalent just because their names sound related.
+
+Agents use `query --compact` to receive verified notes, caveats and source paths without the full hash manifests and scan diagnostics. Validation still runs before anything is returned. The full query output remains available for troubleshooting.
+
+Intent interpretation happens in Copilot; the Python helper searches locally without another model/API call or an embedding service. This improves discovery but does not guarantee every paraphrase will match. Existing notes remain valid and gain aliases as they are revisited—no cache reset is required.
 
 ## It learns as you work
 
@@ -192,7 +206,7 @@ Use the `$repoecho` variable defined above. With the optional gh setup, you can 
 
 This creates a temporary sample repository and measures initial indexing, warm retrieval, change detection and reuse after switching branches. It leaves your repository and cache untouched.
 
-Increase `--files` or `--notes` to test larger workloads. Save results for comparison by adding `> benchmark.json` to the command. These measurements cover the local cache helper; they do **not** measure Copilot thinking time or prove a particular LLM speedup.
+Increase `--files` or `--notes` to test larger workloads. Save results for comparison by adding `> benchmark.json` to the command. The `retrieval_output` section compares full and compact JSON character counts for the same retrieved note IDs. This measures actual output size, not model token counts. These measurements cover the local cache helper; they do **not** measure Copilot thinking time or prove a particular LLM speedup.
 
 ## Update to the latest version
 

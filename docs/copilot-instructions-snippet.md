@@ -17,7 +17,11 @@ uv run --no-project --no-config --python 3.12 --script "CLI" --root "REPO" --jso
 Replace CLI and REPO with real absolute paths. Do not run against the
 Copilot installation folder. Do not require gh or system Python.
 
-Start with one focused query using workflow names, paths or identifiers.
+Infer intent from my normal wording; never ask me for a saved workflow name
+or note ID. Use query --compact for retrieval and post-save verification. Build one focused query from my terms, likely equivalents and
+relevant identifiers. If results are insufficient, reformulate once using
+repository context, then investigate source rather than guessing repeatedly.
+Assess relevance: a verified note need not answer the actual question.
 The script checks skill/cache/branch settings, Git status and diffs, and
 source hashes. Do not duplicate those checks with separate scans or run
 query and inspect in parallel. Treat only returned hits marked
@@ -40,7 +44,10 @@ then capture a small relevant set of files through the script. Read the
 returned files[].content, include shared contracts/configuration and
 appropriate scope globs, and synthesize focused workflow-specific notes:
 trigger, ordered steps, key classes, contracts, configuration and gaps.
-Use source-backed workflow terms and identifiers in titles/tags. Update the
+Use source-backed workflow terms and identifiers in titles/tags, plus
+short aliases containing alternative phrases/questions the note answers.
+Improve aliases after useful reformulations through the normal evidence
+capture/read/save workflow; do not store conversation history or secrets. Update the
 same topic as follow-ups reveal missing evidence; avoid broad architecture
 summaries for narrow workflow questions.
 Save each note with remember and its capture receipt, then query to verify

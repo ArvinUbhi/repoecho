@@ -328,6 +328,50 @@ class CacheTests(unittest.TestCase):
             self.assertEqual(len(m.query("process manager")["hits"]), 1)
             self.assertEqual(len(m.query('" OR * shutdown :')["hits"]), 1)
 
+    def test_natural_language_aliases_both_backends_and_freshness(self):
+        m = self.open()
+        capture = m.capture([self.source], [], 24000)
+        note = self.note()
+        note["aliases"] = ["terminate a running job", "end worker execution"]
+        m.remember(note, capture["receipt"])
+        m = self.open()  # Persisted aliases survive a new session.
+        for backend in (m.fts, False):
+            m.fts = backend
+            for query in ("terminate job", "worker execution"):
+                hits = m.query(query)["hits"]
+                self.assertEqual([n["id"] for n in hits], ["process"])
+                self.assertEqual(hits[0]["freshness"], "content_verified")
+            self.assertEqual(m.query("invoice settlement")["hits"], [])
+        self.write(self.source, "changed evidence")
+        self.assertEqual(m.query("terminate job")["hits"], [])
+
+    def test_alias_validation_and_update_same_revision(self):
+        m = self.learn()
+        capture = m.capture([self.source, "pom.xml"], [], 24000)
+        note = self.note()
+        note["aliases"] = "not a list"
+        with self.assertRaisesRegex(repoecho.CacheError, "aliases must"):
+            m.remember(note, capture["receipt"])
+        note["aliases"] = ["halt worker"]
+        m.remember(note, capture["receipt"])
+        self.assertEqual(len(m.query("halt worker")["hits"]), 1)
+        self.assertEqual(m.db.execute("SELECT COUNT(*) FROM notes").fetchone()[0], 1)
+
+    def test_compact_preserves_knowledge_and_rejects_stale_evidence(self):
+        m = self.learn()
+        full = m.query("shutdown")
+        compact = m.query("shutdown", compact=True)
+        for key in ("id", "title", "summary", "facts", "inferences", "caveats", "freshness"):
+            self.assertEqual(compact["hits"][0][key], full["hits"][0][key])
+        self.assertEqual(compact["hits"][0]["sources"], list(full["hits"][0]["evidence"]["sources"]))
+        self.assertNotIn("evidence", compact["hits"][0])
+        self.assertLess(len(repoecho.packed(compact)), len(repoecho.packed(full)))
+        self.assertEqual(m.query("shutdown", max_chars=1, compact=True)["hits"], [])
+        self.write(self.source, "changed")
+        result = m.query("shutdown", compact=True)
+        self.assertEqual(result["hits"], [])
+        self.assertTrue(result["stale"])
+
     def test_forget_removes_search_result(self):
         m = self.learn()
         self.assertTrue(m.forget("process")["existed"])
