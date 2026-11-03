@@ -73,6 +73,11 @@ source-backed findings at meaningful milestones without waiting to be
 asked. Verify saved notes, avoid rewriting unchanged notes, and refresh
 relevant notes after edits. Do not read or edit the raw cache database.
 
+Prefer workflow-specific notes and improve them when follow-ups reveal
+missing steps or dependencies. A query already validates the cache; avoid
+redundant status/inspect/scan calls. Answer explanations directly from
+sufficient verified notes; read source when details are missing or unclear.
+Keep cache reporting to one short line.
 Read current repository instructions and relevant code before editing.
 If the helper fails, report it and work from source. When useful, report
 which note IDs were reused or refreshed.
@@ -107,6 +112,10 @@ Look for a relevant saved note marked `content_verified`. A successful capture a
 You do not need to ask it to "remember" every discovery. With RepoEcho in use and caching enabled, Copilot saves useful findings as it investigates workflows, understands components and completes changes. It captures the relevant source, writes a concise note through the helper, and checks that the saved note can be retrieved.
 
 For example, investigating a Java shutdown workflow can add a workflow note; later discovering its configuration dependency can update that same note. Unchanged notes are reused rather than saved again. Learning happens at useful milestones, so it does not require indexing the entire application first or writing after every file read.
+
+Notes focus on individual workflows: their trigger, steps, relevant classes, configuration and failure paths. As follow-up questions reveal missing details, Copilot improves the same note using fresh source evidence. This makes later questions easier to answer without repeating the investigation.
+
+For explanations, sufficient verified notes can provide the answer directly. Copilot still opens source for gaps or ambiguity and always reads current relevant code before edits. The initial query already checks settings and freshness, so routine status/inspect/scan calls and duplicate queries are unnecessary. Cache reporting stays within one short line unless you request diagnostics.
 
 The cache grows through the work you actually do. It is not a background process and does not learn while Copilot is idle. Disabled skill, cache or branch settings stop cache reads and writes. A capture or scan alone is not a saved knowledge note.
 

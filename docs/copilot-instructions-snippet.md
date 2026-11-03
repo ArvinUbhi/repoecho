@@ -23,7 +23,10 @@ source hashes. Do not duplicate those checks with separate scans or run
 query and inspect in parallel. Treat only returned hits marked
 content_verified as reusable knowledge; inspect output alone does not
 prove freshness. Avoid broad repository exploration when verified notes
-already answer the question.
+already answer the question. For explanation-only requests, answer from
+sufficient verified notes and their citations without reopening every file.
+Read source for missing, ambiguous or conflicting details and before edits.
+Do not repeat the initial query just to enter the second pass.
 
 If the script reports state=bypassed, respect the disabled skill, cache
 or branch setting: do not read or write cached knowledge, retry learning,
@@ -35,7 +38,11 @@ and report effective_enabled and bypass_reasons. Use branch only for
 If knowledge is missing, stale or insufficient, use plan only if needed,
 then capture a small relevant set of files through the script. Read the
 returned files[].content, include shared contracts/configuration and
-appropriate scope globs, and synthesize focused source-linked notes.
+appropriate scope globs, and synthesize focused workflow-specific notes:
+trigger, ordered steps, key classes, contracts, configuration and gaps.
+Use source-backed workflow terms and identifiers in titles/tags. Update the
+same topic as follow-ups reveal missing evidence; avoid broad architecture
+summaries for narrow workflow questions.
 Save each note with remember and its capture receipt, then query to verify
 retrieval. Capture alone does not persist a knowledge note. If evidence
 changes before saving, recapture and reread it before revising the note.
@@ -58,8 +65,10 @@ save and verify pending useful findings, or report why saving failed.
 Do not crawl unrelated modules to fill the cache. Respect off/bypass modes
 throughout; this is not a background watcher.
 
-After code changes, run scan and refresh affected notes useful to the task.
-A scan updates hashes, not written knowledge. After a branch switch,
+After code changes, refresh affected notes useful to the task through
+capture, read and remember, then query to verify. These operations already
+scan; do not add a separate scan unless its output is specifically needed.
+A scan alone updates hashes, not written knowledge. After a branch switch,
 query again before relying on earlier context; let the script validate
 and select matching revisions. Keep one consistent root per repository.
 Never copy .repoecho between repositories/worktrees or commit its contents.
@@ -67,7 +76,7 @@ Never copy .repoecho between repositories/worktrees or commit its contents.
 If the helper fails, report the error briefly and continue from source
 without claiming cache validation succeeded. Do not reset/delete the cache
 or change permissions to hide an error. When useful, end with one short
-line naming reused/refreshed note IDs or explaining why caching was bypassed.
+line (at most) naming reused/refreshed note IDs or explaining why caching was bypassed.
 ```
 
 After adding or editing the file, run `/new` in Copilot CLI, then `/instructions` to confirm it is discovered and enabled. Alternatively, exit and run `copilot --continue` from your target repository. Active sessions do not immediately load instruction changes; `/skills reload` is for skills, not this instruction refresh. Saved notes persist across sessions.
