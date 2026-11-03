@@ -23,7 +23,7 @@ git clone https://github.com/ArvinUbhi/repoecho.git
 uv run --no-project --python 3.12 repoecho/tools/install.py
 ```
 
-uv finds Python 3.12 and downloads it if needed. Setup installs the complete Copilot skill. No extra API key or Python packages are required. You can remove the downloaded checkout afterwards.
+uv finds Python 3.12 and downloads it if needed. Setup installs the complete Copilot skill and a `repoecho` command. It adds the command folder to your user PATH; **open a new PowerShell window** before running `repoecho status`. No extra API key, `gh` or Python packages are required. You can remove the downloaded checkout afterwards.
 
 Already installed? Add `--replace` to the install command. Do not add `--gh` unless GitHub CLI is installed and you want its optional terminal commands.
 
@@ -133,7 +133,7 @@ For explanations, sufficient verified notes can provide the answer directly. Cop
 
 The cache grows through the work you actually do. It is not a background process and does not learn while Copilot is idle. Disabled skill, cache or branch settings stop cache reads and writes. A capture or scan alone is not a saved knowledge note.
 
-## Everyday controls — no gh needed
+## Everyday controls — `repoecho` command
 
 Ask Copilot directly:
 
@@ -147,16 +147,18 @@ Use /repoecho on all branches.
 
 The skill, cache and branch settings must all be on for caching to work. Enabling the skill leaves a separately disabled cache off. Turning caching off keeps saved notes for later reuse.
 
-For direct terminal control on Windows, run this from your target repository:
+From your application repository, open a **new** PowerShell window after installation and run:
 
 ```powershell
-$repoecho = "$HOME\.copilot\skills\repoecho\scripts\repoecho_cli.py"
-uv run --no-project --python 3.12 "$repoecho" status
-uv run --no-project --python 3.12 "$repoecho" cache off
-uv run --no-project --python 3.12 "$repoecho" branch only
+repoecho status
+repoecho cache off
+repoecho cache on
+repoecho branch only
+repoecho branch all
+repoecho doctor
 ```
 
-Replace the last command with `on`, `off`, `cache on`, `branch all`, `doctor` or `--help` as needed. If Copilot selects an incompatible Python installation, tell it to use **`uv run --python 3.12`** for RepoEcho commands.
+For direct control in another repository, add `--root "C:\path\to\your-app"` before the command. `repoecho` finds the current Git worktree root when called inside one. On macOS/Linux the command is in `~/.local/bin`; the installer adds that directory to your shell startup file when needed. The launcher uses uv with Python 3.12, so there is no system Python or gh dependency. Existing PowerShell/Copilot sessions need a new terminal to see PATH changes. If your company restricts PATH updates, install with `--no-path` and use the absolute script command shown in [manual setup](.github/skills/repoecho/references/setup.md).
 
 ### Optional GitHub CLI controls
 
@@ -189,20 +191,20 @@ This avoids repeating the same learning and storage for every branch. Validation
 To select a repository explicitly:
 
 ```powershell
-uv run --no-project --python 3.12 "$repoecho" --root "C:\path\to\your-app" status
+repoecho --root "C:\path\to\your-app" status
 ```
 
-Use the `$repoecho` variable defined above. On macOS/Linux, the installed script is at `~/.copilot/skills/repoecho/scripts/repoecho_cli.py`.
+Run this from any directory after opening a new terminal.
 
 For non-Git directories, run commands from the same root directory each time or use `--root`.
 
 ## Run a benchmark
 
 ```powershell
-uv run --no-project --python 3.12 "$repoecho" benchmark --files 2000 --notes 20 --runs 5
+repoecho benchmark --files 2000 --notes 20 --runs 5
 ```
 
-Use the `$repoecho` variable defined above. With the optional gh setup, you can also run `gh repoecho benchmark`.
+With the optional gh setup, you can also run `gh repoecho benchmark`.
 
 This creates a temporary sample repository and measures initial indexing, warm retrieval, change detection and reuse after switching branches. It leaves your repository and cache untouched.
 
@@ -286,7 +288,7 @@ Use /repoecho to show its effective status, then retrieve a saved note
 for this repository and report its note ID and freshness.
 ```
 
-If caching is off, that should be reported rather than silently enabled. If no valid note exists, ask Copilot to learn a relevant workflow.
+From a new terminal, `repoecho status` should also work. If caching is off, that should be reported rather than silently enabled. If no valid note exists, ask Copilot to learn a relevant workflow.
 
 ## Troubleshooting
 

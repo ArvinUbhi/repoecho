@@ -1,14 +1,16 @@
 # Setup, daily use and measurement
 
-Prerequisites for the easy shell interface: Git, GitHub CLI (`gh`) and `uv` on PATH. Windows also needs `sh` from Git for Windows. uv selects Python 3.10+ automatically; its first invocation may download Python. The cache itself is local and has no API/network requirement. Offline machines need a compatible Python already installed; set `UV_OFFLINE=1` to disallow downloads. Do not install or modify the target repository's Python environment.
+Prerequisites for the easy shell interface: Git and `uv` on PATH. `gh` is optional. Windows needs `sh` from Git for Windows only for the optional gh alias. uv selects Python 3.10+ automatically; its first invocation may download Python. The cache itself is local and has no API/network requirement. Offline machines need a compatible Python already installed; set `UV_OFFLINE=1` to disallow downloads. Do not install or modify the target repository's Python environment.
 
 From a downloaded RepoEcho checkout:
 
 ```sh
-uv run --no-project --python '>=3.10' tools/install.py --gh
+uv run --no-project --python 3.12 tools/install.py
 ```
 
-From a loaded skill, use the same uv command with its absolute `scripts/setup_repoecho.py` path. The complete skill, including installer, CLI and benchmark, is self-contained. Setup registers a supported gh **shell alias**, not an extension; the alias points at the installed personal skill, so the download checkout can be removed. Use `--replace` to update an existing skill. A different existing alias is protected; `--replace-alias` is an explicit override. Setup rolls back the skill copy if alias registration fails. After installation/update, run `/skills reload` in Copilot CLI.
+From a loaded skill, use the same uv command with its absolute `scripts/setup_repoecho.py` path. The complete skill, including installer, CLI and benchmark, is self-contained. Setup installs a `repoecho` command into `~/.local/bin`, adds that directory to the user PATH if needed, and points it at the installed personal skill. On Windows open a new PowerShell window to pick up the user PATH; on bash/zsh open a new terminal. The downloaded checkout can then be removed. Run `repoecho status`, `repoecho cache off` or `repoecho branch only` from the target repository. Use `--no-path` to skip command/PATH installation. On Windows without PATH changes, you can run `uv run --no-project --python 3.12 "$HOME\.copilot\skills\repoecho\scripts\repoecho_cli.py" status` from the target repository instead. `--home` creates a portable command under the specified home without changing your real PATH. Project-local installs never modify global PATH. An unrelated command with the same name is not overwritten.
+
+The optional `--gh` also registers a supported gh **shell alias**, not an extension; it requires gh and sh. Use `--replace` to update an existing skill. A different existing alias is protected; `--replace-alias` is an explicit override. Setup rolls back the skill copy if alias registration fails. After installation/update, run `/skills reload` in Copilot CLI.
 
 Daily controls (from any directory inside a Git worktree):
 
@@ -32,4 +34,4 @@ Benchmark output is JSON; redirect it to a file to compare runs. It creates its 
 
 To update: pull the trusted RepoEcho checkout, rerun its installer with `--gh --replace`, then reload Copilot skills. `gh repoecho setup --gh` repairs a missing alias from the installed skill; it does not download updates. `gh repoecho setup --project /path/to/repo` copies the installed skill for a team; the personal gh alias still uses the personal version. Avoid running different skill versions against the same cache: policy changes intentionally invalidate notes. Remove just the shell command with `gh alias delete repoecho`; existing caches and skill files remain.
 
-If uv is unavailable, Python 3.10+ can execute `scripts/repoecho_cli.py` directly. If gh is unavailable, installation without `--gh` still provides the Copilot skill. Never claim gh setup succeeded if its prerequisite checks or alias registration failed.
+If uv is unavailable, Python 3.10+ can execute `scripts/repoecho_cli.py` directly. If gh is unavailable, ordinary installation provides both the Copilot skill and the `repoecho` command. Never claim gh setup succeeded if its prerequisite checks or alias registration failed.
