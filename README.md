@@ -208,6 +208,30 @@ This creates a temporary sample repository and measures initial indexing, warm r
 
 Increase `--files` or `--notes` to test larger workloads. Save results for comparison by adding `> benchmark.json` to the command. The `retrieval_output` section compares full and compact JSON character counts for the same retrieved note IDs. This measures actual output size, not model token counts. These measurements cover the local cache helper; they do **not** measure Copilot thinking time or prove a particular LLM speedup.
 
+## Measure real Copilot usage
+
+The built-in benchmark measures local helper time and output size. To measure **your actual AIC**, use the study sheet included with your downloaded RepoEcho checkout. In PowerShell, from the folder containing `tools`, run:
+
+```powershell
+uv run --no-project --python 3.12 .\tools\usage_study.py init .\usage-study.csv
+```
+
+Replace the five example questions in the CSV with questions about your Java application. For each question, run a **fresh Copilot session** (`/new`) with the same model and unchanged repository/commit. Record three modes: `off` (turn caching off and confirm it), `cold` (caching on, no relevant note yet), and `warm` (caching on, relevant note already learned). A repository that already has a relevant note cannot provide a genuine cold run for that question; use another new workflow rather than deleting your useful cache. Turn caching back on when done.
+
+Enter AIC as Copilot displays it, elapsed seconds, number of RepoEcho helper calls, and `correct` as `yes` or `no`. Copy the model name and commit SHA consistently for matched runs. The CSV stays local and is not sent anywhere. Summarize completed matches with:
+
+```powershell
+uv run --no-project --python 3.12 .\tools\usage_study.py report .\usage-study.csv
+```
+
+This reports matched AIC differences, latency, helper calls and answer correctness. It cannot automatically read Copilot's AIC; you enter it from each session. Single runs vary, so repeat questions before drawing conclusions.
+
+A separate retrieval check uses synthetic notes to test whether ordinary questions find the right workflow and whether changed source prevents stale reuse:
+
+```powershell
+uv run --no-project --python 3.12 .\tools\retrieval_eval.py
+```
+
 ## Update to the latest version
 
 **No `gh` or system Python needed. Your repository's saved notes and cache settings stay in place.** Updating the installed skill does not automatically update your `AGENTS.md` or Copilot instruction file.

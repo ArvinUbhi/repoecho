@@ -70,6 +70,14 @@ def tokens(text):
     return re.findall(r"[^\W_]+", (text + " " + expanded).lower(), re.UNICODE)
 
 
+def search_stem(word):
+    for ending in ("ing", "ed"):
+        if word.endswith(ending) and len(word) > len(ending) + 3:
+            base = word[:-len(ending)]
+            return base[:-1] if len(base) > 3 and base[-1] == base[-2] else base
+    return word
+
+
 def relative(value):
     if not isinstance(value, str) or not value or "\\" in value or "\x00" in value:
         raise CacheError("Use a non-empty, repository-relative POSIX path.")
@@ -736,19 +744,38 @@ class Memory:
             raise
 
     def ranked(self, query):
+        common = {"a", "an", "and", "are", "can", "do", "does", "explain", "for", "how",
+                  "i", "in", "is", "it", "me", "my", "of", "on", "or", "the", "to", "what", "when",
+                  "where", "which", "with", "would"}
         words = list(dict.fromkeys(tokens(query)))[:64]
-        if not words:
+        terms = [w for w in words if w not in common] or words
+        if not terms:
             return self.db.execute("SELECT payload FROM notes ORDER BY id")
         if self.fts:
-            expression = " OR ".join('"' + w.replace('"', '""') + '"' for w in words)
-            return self.db.execute("SELECT n.payload FROM search_notes s JOIN notes n ON n.id=s.id "
-                                   "WHERE search_notes MATCH ? ORDER BY bm25(search_notes), n.id", (expression,))
+            expression = " OR ".join('"' + search_stem(w).replace('"', '""') + '"*' for w in terms)
+            rows = self.db.execute("SELECT n.payload FROM search_notes s JOIN notes n ON n.id=s.id "
+                                   "WHERE search_notes MATCH ? ORDER BY bm25(search_notes), n.id LIMIT 256",
+                                   (expression,))
+        else:
+            rows = self.db.execute("SELECT payload FROM notes")
         ranked = []
-        for row in self.db.execute("SELECT payload, search FROM notes"):
-            score = len(set(words) & set(row["search"].split()))
-            if score:
-                ranked.append((score, row["payload"]))
-        return [(p,) for _, p in sorted(ranked, key=lambda x: (-x[0], x[1]))]
+        wanted = {search_stem(w) for w in terms}
+        for row in rows:
+            note = json.loads(row[0])
+            title = {search_stem(w) for w in tokens(note["title"] + " " + note["id"])}
+            aliases = {search_stem(w) for w in tokens(" ".join(note.get("aliases", [])))}
+            summary = {search_stem(w) for w in tokens(note["summary"] + " " + " ".join(note.get("tags", [])))}
+            detail = {search_stem(w) for w in tokens(" ".join(note.get("facts", []) + note.get("inferences", [])))}
+            paths = {search_stem(w) for w in tokens(" ".join(note["evidence"]["sources"]))}
+            matches = wanted & (title | aliases | summary | detail | paths)
+            if len(matches) < min(2, len(wanted)):
+                continue
+            score = (len(matches) * 20 + len(matches & title) * 6 + len(matches & aliases) * 5 +
+                     len(matches & summary) * 3 + len(matches & detail) + len(matches & paths) * 2)
+            # Complete matches outrank notes matching only a common operation verb.
+            ranked.append((-score, note["id"], row[0]))
+        ranked.sort()
+        return [(payload,) for _, _, payload in ranked]
 
     def query(self, query, limit=5, max_chars=12000, compact=False):
         self.scan()

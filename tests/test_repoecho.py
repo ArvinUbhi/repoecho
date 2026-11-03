@@ -372,6 +372,27 @@ class CacheTests(unittest.TestCase):
         self.assertEqual(result["hits"], [])
         self.assertTrue(result["stale"])
 
+    def test_intent_and_component_ranking_with_branch_changes(self):
+        self.write("src/HostController.java", "class HostController { void stopHost() {} }")
+        m = self.open()
+        cases = [
+            ("host-stop", "Stop host service", "host shutdown", ["stop a host", "halt host service"], "src/HostController.java"),
+            ("process-stop", "Stop running process", "process shutdown", ["stop a running job", "terminate process"], self.source),
+        ]
+        for note_id, title, summary, aliases, path in cases:
+            receipt = m.capture([path], [], 24000)["receipt"]
+            m.remember({"id": note_id, "title": title, "summary": summary,
+                        "aliases": aliases, "facts": [path + ":1 handles stopping."]}, receipt)
+        for backend in (m.fts, False):
+            m.fts = backend
+            self.assertEqual(m.query("What happens when I stop a running job?", limit=1)["hits"][0]["id"], "process-stop")
+            self.assertEqual(m.query("How do I halt the host service?", limit=1)["hits"][0]["id"], "host-stop")
+            self.assertEqual(m.query("invoice settlement", limit=1)["hits"], [])
+        self.write(self.source, "changed process")
+        result = m.query("stop a running job", limit=1)
+        self.assertEqual(result["hits"], [])
+        self.assertIn("process-stop", [x["id"] for x in result["stale"]])
+
     def test_forget_removes_search_result(self):
         m = self.learn()
         self.assertTrue(m.forget("process")["existed"])

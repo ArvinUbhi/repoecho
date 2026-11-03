@@ -66,3 +66,9 @@ An independent agent used the bundled CLI in a disposable Java Git repository, e
 The alias and compact-output update passed 74 unit tests (one optional integration test skipped). Added coverage checks aliases in both FTS and lexical fallback, session persistence, alias validation, revision reuse, stale-evidence rejection, compact knowledge/caveat preservation and output budgets.
 
 A local synthetic Git benchmark (`python tools/benchmark.py --files 200 --notes 20 --runs 3`) returned the same note IDs with 2,941 full JSON characters versus 551 compact characters: 81.26% less serialized output. Warm query median was 83.97 ms. These are one-run fixture measurements, not guaranteed production results or model token/AIC savings. Full output uses its normal pretty formatting; compact uses compact JSON. Repeat in Copilot with the same model, question and repository in fresh sessions to measure actual model usage and answer quality.
+
+## Intent ranking and real-usage study
+
+`tools/retrieval_eval.py` creates disposable source and notes for process shutdown, host shutdown and configuration reload. Six cases include paraphrases, competing components and an unrelated question. The checked run passed 6/6 at rank 1 and withheld a changed-source note. `tests/test_repoecho.py` also checks FTS/fallback ranking and evidence invalidation. This fixture measures retrieval quality for those cases only, not all natural-language questions.
+
+`tools/usage_study.py` creates a local CSV for manually recording matched Copilot runs with caching off, cold and warm. It reports AIC, elapsed time, helper calls and correctness. No AIC result can be claimed until the user's actual Copilot runs are recorded. Synthetic helper benchmarks remain separate.

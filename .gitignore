@@ -3,3 +3,4 @@ __pycache__/
 .repoecho/
 .venv/
 .DS_Store
+usage-study.csv
