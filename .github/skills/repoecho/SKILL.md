@@ -60,6 +60,19 @@ If the user asks to enable/disable RepoEcho or caching, translate the request in
 3. After changes, run `scan`; refresh only notes needed now whose evidence changed. Query always rescans file membership and verifies candidate evidence before serving it. Concurrent edits can still occur after any check, so re-read code before acting.
 4. Tell the user briefly whether knowledge was reused or refreshed when useful. Do not expose cache internals unless asked. State any evidence gaps.
 
+## Learn continuously during the task
+
+Treat learning as an ongoing part of repository work, not a one-time setup step. While caching is enabled, save useful new source-backed understanding without waiting for the user to say "remember this". A warm hit does not prevent learning additional facts discovered later in the task.
+
+- At each meaningful milestone (a workflow traced, a component understood, or a change validated), identify reusable findings not already adequately covered by verified notes. Batch related findings into one focused note; do not write after every file read or tool call.
+- For each new or materially changed finding, follow pass one's capture → read → synthesize → remember sequence, then query to verify retrieval. If you initially read files with ordinary tools, capture and reread that evidence before saving. Capture or scan alone does not populate knowledge notes.
+- Reuse stable logical note IDs when updating the same topic. Do not resave unchanged, sufficient notes or duplicate them for a new branch name. Include new dependencies/scopes when the finding requires them. Retain narrow notes rather than continually expanding one repository-wide summary.
+- After edits, save conclusions against the final source evidence, and refresh affected notes useful to the completed task. Separate source facts from inference; do not persist transient command output, unverified diagnoses, credentials, or conversation history.
+- Before the final response, finish any pending useful note saves and verification. Report reused/new/refreshed note IDs briefly when useful, and honestly report failed saves. Do not claim a note was learned until remember succeeds. If there are no new reusable findings, no write is needed.
+- Honor bypassed/off modes at every checkpoint. Never turn caching on or write notes to another branch/root to bypass a disabled setting. On helper failure, continue from source and report the gap; do not run an automatic retry loop.
+
+This is an agent workflow using the helper, not a background watcher. Do not crawl unrelated modules merely to fill the cache.
+
 ## Controls and boundaries
 
 - For performance questions, run `benchmark --files 2000 --notes 20 --runs 5` through the bundled CLI. This uses a disposable synthetic repository and checks warm retrieval, invalidation, disabled modes and branch-return reuse. It measures helper latency, not model thinking time. Never claim LLM time/token savings from these timings. For a real task, reuse focused verified notes and keep retrieval budgets small; avoid broad captures and repeated full scans.

@@ -68,7 +68,10 @@ mode controls. Let it check Git branches, status, diffs and source hashes.
 Reuse only content_verified notes. Query again after switching branches.
 Respect disabled skill, cache and branch settings; never enable them
 without being asked. Learn missing or stale knowledge from current source
-and save it through the script. Do not read or edit the raw cache database.
+and save it through the script. As work progresses, save useful new
+source-backed findings at meaningful milestones without waiting to be
+asked. Verify saved notes, avoid rewriting unchanged notes, and refresh
+relevant notes after edits. Do not read or edit the raw cache database.
 
 Read current repository instructions and relevant code before editing.
 If the helper fails, report it and work from source. When useful, report
@@ -98,6 +101,14 @@ note IDs and freshness returned by the script, and learn anything missing.
 ```
 
 Look for a relevant saved note marked `content_verified`. A successful capture alone does not save a note; the skill must also save it with `remember`. If no valid note exists, Copilot should read the source and refresh its knowledge.
+
+## It learns as you work
+
+You do not need to ask it to "remember" every discovery. With RepoEcho in use and caching enabled, Copilot saves useful findings as it investigates workflows, understands components and completes changes. It captures the relevant source, writes a concise note through the helper, and checks that the saved note can be retrieved.
+
+For example, investigating a Java shutdown workflow can add a workflow note; later discovering its configuration dependency can update that same note. Unchanged notes are reused rather than saved again. Learning happens at useful milestones, so it does not require indexing the entire application first or writing after every file read.
+
+The cache grows through the work you actually do. It is not a background process and does not learn while Copilot is idle. Disabled skill, cache or branch settings stop cache reads and writes. A capture or scan alone is not a saved knowledge note.
 
 ## Everyday controls — no gh needed
 

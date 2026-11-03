@@ -49,6 +49,15 @@ editing; RepoEcho is not an editor or a build runner. Excluded or oversized
 sources may require direct inspection; report that coverage gap rather
 than claiming they were cached.
 
+As work progresses, save useful new source-backed findings at meaningful
+milestones without waiting for a "remember" request, including discoveries
+made after a warm cache hit. Follow capture, read, remember and query
+verification. Batch related findings; use stable topic IDs and do not
+resave unchanged notes or create branch-name duplicates. Before finishing,
+save and verify pending useful findings, or report why saving failed.
+Do not crawl unrelated modules to fill the cache. Respect off/bypass modes
+throughout; this is not a background watcher.
+
 After code changes, run scan and refresh affected notes useful to the task.
 A scan updates hashes, not written knowledge. After a branch switch,
 query again before relying on earlier context; let the script validate
