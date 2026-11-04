@@ -1,4 +1,5 @@
 import json
+import zipfile
 import os
 import re
 import shlex
@@ -74,6 +75,27 @@ class InstallTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual(launcher.read_text(), "another tool")
             self.assertFalse((Path(home) / ".copilot/skills/repoecho").exists())
+
+    def test_offline_zip_updater_and_downgrade_guard(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            archive = root / "source.zip"
+            with zipfile.ZipFile(archive, "w") as z:
+                for path in PROJECT.rglob("*"):
+                    if path.is_file() and not any(x in path.parts for x in (".git", "__pycache__", ".repoecho")):
+                        z.write(path, "repoecho-main/" + path.relative_to(PROJECT).as_posix())
+            home = root / "user"
+            updater = PROJECT / ".github/skills/repoecho/scripts/update_repoecho.py"
+            result = subprocess.run([sys.executable, str(updater), "--zip", str(archive), "--home", str(home)],
+                                    capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            installed = home / ".copilot/skills/repoecho/scripts/repoecho.py"
+            self.assertIn('VERSION = "1.3.0"', installed.read_text())
+            installed.write_text(installed.read_text().replace('VERSION = "1.3.0"', 'VERSION = "9.0.0"'))
+            result = subprocess.run([sys.executable, str(updater), "--zip", str(archive), "--home", str(home)],
+                                    capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('VERSION = "9.0.0"', installed.read_text())
 
     def test_project_install(self):
         with tempfile.TemporaryDirectory() as root:

@@ -76,3 +76,7 @@ A local synthetic Git benchmark (`python tools/benchmark.py --files 200 --notes 
 ## Same-file branch switching
 
 Git integration tests switch between main and feature branches that modify the same file and retain different workflow revisions. A many-branch test verifies that an older branch revision remains reusable after ten later branch revisions, and that branches with identical evidence share one revision. Query still hashes current working-tree evidence and withholds mismatched revisions. This does not cover unrelated external dependencies that were not captured.
+
+## ZIP updater
+
+The ZIP updater is tested against a local source ZIP without network access: it extracts the expected layout, installs a personal skill into a temporary home, reports semantic version 1.3.0 and refuses a downgrade. The Bash wrapper invokes the same script through uv. Network/proxy access remains environment dependent; use `--zip` with a browser-downloaded ZIP if the scripted download is blocked.

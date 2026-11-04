@@ -238,17 +238,29 @@ uv run --no-project --python 3.12 .\tools\retrieval_eval.py
 
 **No `gh` or system Python needed. Your repository's saved notes and cache settings stay in place.** Updating the installed skill does not automatically update your `AGENTS.md` or Copilot instruction file.
 
-### Windows: ZIP installation
+### Update with one command (no Git or gh)
 
-1. Close Copilot before replacing the installed skill, to avoid folder-lock errors.
-2. [Download the latest ZIP](https://github.com/ArvinUbhi/repoecho/archive/refs/heads/main.zip) and extract it into a **fresh folder**. Open the extracted `repoecho-main` folder containing `tools` and `README.md`.
-3. Open PowerShell in that folder (type `powershell` in File Explorer's address bar), then paste:
+Close Copilot to release the installed skill folder. From a new PowerShell or terminal window run:
 
-```powershell
-uv run --no-project --python 3.12 .\tools\install.py --replace
+```text
+repoecho update
 ```
 
-Wait for **Installed RepoEcho at ...**. Running an old downloaded copy only reinstalls that old version—download the latest ZIP first.
+The command downloads the latest public GitHub ZIP over HTTPS, extracts it in a temporary folder and runs the installer with `--replace`. It reports the installed and downloaded **MAJOR.MINOR.PATCH** versions (`repoecho --version` shows the installed version). The downloaded ZIP is removed after installation. It uses uv's Python 3.12, not system Python. Your application's `.repoecho` cache stays in that application directory. After a skill version update, notes may need verification or refreshing under the new policy.
+
+If your work proxy allows **browser downloads but blocks scripted downloads**, [save the current ZIP in your browser](https://github.com/ArvinUbhi/repoecho/archive/refs/heads/main.zip), then run:
+
+```powershell
+repoecho update --zip "C:\path\to\repoecho-main.zip"
+```
+
+If `repoecho` is not on PATH yet, download and extract the ZIP once, open Git Bash in the extracted `repoecho-main` folder and run:
+
+```bash
+bash tools/update.sh
+```
+
+The Bash script accepts `--zip /path/to/repoecho-main.zip` too. Both commands validate the ZIP layout and refuse a downgrade. If neither PowerShell nor Git Bash can reach the ZIP URL, use the browser download plus `--zip` option. A proxy that blocks both browser and command line downloads requires the ZIP to be transferred to the machine by an allowed route.
 
 ### Git installation
 

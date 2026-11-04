@@ -48,6 +48,11 @@ def main(argv=None):
         help="status, on, off, mode, cache, branch, doctor, benchmark, setup; or any engine command")
     parser.add_argument("arguments", nargs=argparse.REMAINDER)
     args = parser.parse_args(argv)
+    if args.command == "update":
+        if args.root is not None or args.json:
+            parser.error("update does not accept --root or --json")
+        import update_repoecho
+        return update_repoecho.main(args.arguments)
     if args.command in ("setup", "benchmark"):
         if args.root is not None or args.json:
             parser.error("setup/benchmark use their own options; run the command with --help")
