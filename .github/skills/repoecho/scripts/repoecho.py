@@ -27,7 +27,7 @@ import tempfile
 import time
 import uuid
 
-VERSION = "1.3.3"
+VERSION = "1.4.0"
 # Bump only when evidence semantics become incompatible, never for a release.
 CACHE_COMPATIBILITY = 1
 SCHEMA = "1"
@@ -124,6 +124,20 @@ def root_path(path):
     return root
 
 
+def git_run(root, *args):
+    # Shell-exported Git locations/config must never redirect another repo's cache.
+    env = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+    env.update(LC_ALL="C", GIT_OPTIONAL_LOCKS="0")
+    return subprocess.run(["git", "-C", str(root), *args], capture_output=True, timeout=30, env=env)
+
+
+def require_plain_without_git(root):
+    if any((parent / ".git").exists() or (parent / ".git").is_symlink()
+           for parent in (root, *root.parents)):
+        raise CacheError("Git is required for this checkout. Restore git on PATH before using RepoEcho; "
+                         "filesystem fallback would ignore Git exclusions and branch controls.")
+
+
 def cache_directory(root, create=False):
     cache = root / CACHE
     if cache.is_symlink() or (cache.exists() and not cache.is_dir()):
@@ -142,9 +156,9 @@ def cache_directory(root, create=False):
 
 
 @contextmanager
-def control_lock(cache):
+def control_lock(cache, filename="control.lock", purpose="controls"):
     """OS-released lock: a crashed settings writer cannot leave a stale lock."""
-    path = cache / "control.lock"
+    path = cache / filename
     if path.is_symlink():
         raise CacheError("Refusing a symlinked control lock.")
     flags = os.O_RDWR | os.O_CREAT | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_BINARY", 0)
@@ -173,7 +187,7 @@ def control_lock(cache):
                 break
             except (BlockingIOError, OSError):
                 if time.monotonic() >= deadline:
-                    raise CacheError("Another process is updating RepoEcho controls; retry shortly.")
+                    raise CacheError("Another process is updating RepoEcho " + purpose + "; retry shortly.")
                 time.sleep(0.05)
         try:
             yield
@@ -192,15 +206,14 @@ class Controls:
 
     def current_branch(self):
         if not shutil.which("git"):
+            require_plain_without_git(self.root)
             return None, "git_unavailable"
-        probe = subprocess.run(["git", "-C", str(self.root), "rev-parse", "--show-toplevel"],
-                               capture_output=True, timeout=30)
+        probe = git_run(self.root, "rev-parse", "--show-toplevel")
         if probe.returncode:
             if "not a git repository" in probe.stderr.decode(errors="replace").lower():
                 return None, "non_git"
             raise CacheError("Git rejected this directory; cannot determine branch controls.")
-        result = subprocess.run(["git", "-C", str(self.root), "symbolic-ref", "--quiet", "--short", "HEAD"],
-                                capture_output=True, timeout=30)
+        result = git_run(self.root, "symbolic-ref", "--quiet", "--short", "HEAD")
         if result.returncode == 1:
             return None, "detached"
         if result.returncode:
@@ -284,10 +297,11 @@ class GitTracker:
         self.status_map = {}
 
     def run(self, *args):
-        return subprocess.run(["git", "-C", str(self.root), *args], capture_output=True, timeout=30)
+        return git_run(self.root, *args)
 
     def snapshot(self, previous):
         if not shutil.which("git"):
+            require_plain_without_git(self.root)
             return {"available": False, "reason": "git_unavailable"}
         probe = self.run("rev-parse", "--show-toplevel")
         if probe.returncode:
@@ -397,8 +411,10 @@ class Memory:
                                  if x.strip() and not x.lstrip().startswith("#"))
         for pattern in self.excludes:
             validate_pattern(pattern)
-        self.policy = digest({"compatibility": CACHE_COMPATIBILITY,
-                              "config": self.config, "exclude": self.excludes})
+        self.policy = digest({"compatibility": CACHE_COMPATIBILITY})
+        self.scan_policy = digest({"compatibility": CACHE_COMPATIBILITY,
+                                   "max_file_bytes": self.config["max_file_bytes"],
+                                   "exclude": sorted(set(self.excludes))})
         cache = cache_directory(self.root, create=True)
         db_path = cache / "cache.sqlite3"
         for suffix in ("", "-wal", "-shm", "-journal"):
@@ -505,19 +521,18 @@ class Memory:
     def paths(self):
         self.discovery = "filesystem"
         if shutil.which("git"):
-            probe = subprocess.run(["git", "-C", str(self.root), "rev-parse", "--show-toplevel"],
-                                   capture_output=True, timeout=30)
+            probe = git_run(self.root, "rev-parse", "--show-toplevel")
             if probe.returncode == 0:
                 # --full-name is intentionally absent: paths are relative to --root.
-                result = subprocess.run(["git", "-C", str(self.root), "ls-files", "--cached",
-                                         "--others", "--exclude-standard", "-z", "--", "."],
-                                        capture_output=True, timeout=30)
+                result = git_run(self.root, "ls-files", "--cached", "--others", "--exclude-standard", "-z", "--", ".")
                 if result.returncode:
                     raise CacheError("Git file discovery failed; no cache result served.")
                 self.discovery = "git"
                 return sorted(set(os.fsdecode(x) for x in result.stdout.split(b"\x00") if x))
             if "not a git repository" not in probe.stderr.decode(errors="replace").lower():
                 raise CacheError("Git rejected this directory; fix Git access before indexing.")
+        if not shutil.which("git"):
+            require_plain_without_git(self.root)
         found = []
         def onerror(exc):
             raise CacheError("Cannot enumerate repository: " + str(exc))
@@ -532,7 +547,7 @@ class Memory:
         now = time.time()
         tracker = GitTracker(self.root)
         git_state = tracker.snapshot(json.loads(self.meta("git_snapshot") or "{}"))
-        full = bool(full or self.meta("policy") != self.policy or
+        full = bool(full or self.meta("policy") != self.scan_policy or
                     not git_state.get("history_complete", True) or
                     now - float(self.meta("full_verified") or 0) >= self.config["full_verify_hours"] * 3600)
         hashed, reused = 0, 0
@@ -607,7 +622,7 @@ class Memory:
             removed = sorted(set(old) - set(current))
             self.db.executemany("DELETE FROM files WHERE path=?", ((x,) for x in removed))
             self.db.execute("DELETE FROM receipts WHERE created < ?", (now - 86400,))
-            self.set_meta("policy", self.policy)
+            self.set_meta("policy", self.scan_policy)
             self.set_meta("last_scan", utc())
             self.set_meta("git_snapshot", packed({"branch": git_state.get("branch"), "head": git_state.get("head"),
                                                    "dirty_paths": tracker.status_map}))
@@ -655,8 +670,6 @@ class Memory:
                 return "cache_compatibility_changed"
         elif evidence["compatibility"] != CACHE_COMPATIBILITY:
             return "cache_compatibility_changed"
-        elif evidence["policy"] != self.policy:
-            return "configuration_changed"
         if evidence.get("expires_epoch", float("inf")) <= time.time():
             return "review_expired"
         for path, sha in evidence["sources"].items():
@@ -668,9 +681,10 @@ class Memory:
                 return "scope_changed:" + pattern
         return None
 
-    def adopt_legacy_note(self, note):
-        """Upgrade a strictly verified schema-1 note without renewing its dates."""
-        if "compatibility" in note["evidence"]:
+    def adopt_compatible_note(self, note):
+        """Normalize compatible evidence keys without renewing their dates."""
+        if (note["evidence"].get("compatibility") == CACHE_COMPATIBILITY and
+                note["evidence"].get("policy") == self.policy):
             return note
         old_payload = packed(note)
         # The query has already verified evidence. Use a transaction and an
@@ -686,7 +700,7 @@ class Memory:
             storage_id = note["id"] + "@" + revision
             existing = self.db.execute("SELECT payload, search FROM notes WHERE id=?", (storage_id,)).fetchone()
             search = row["search"]
-            if existing:
+            if existing and row["id"] != storage_id:
                 saved = json.loads(existing["payload"])
                 origins = [saved["evidence"].get("origin", {}), evidence.get("origin", {})]
                 if saved["generated_at"] >= note["generated_at"] and self.validity(saved["evidence"]) is None:
@@ -758,6 +772,7 @@ class Memory:
             reason = self.validity(evidence)
             if reason:
                 raise CacheError("Evidence changed after reading; recapture and relearn: " + reason)
+            evidence.update(policy=self.policy, compatibility=CACHE_COMPATIBILITY)
             note = dict(note)
             generated = utc()
             expiry = time.time() + self.config["note_ttl_days"] * 86400
@@ -868,7 +883,7 @@ class Memory:
                 if len(stale) < 20:
                     stale.append({"id": note["id"], "revision": note.get("revision"), "reason": reason})
                 continue
-            note = self.adopt_legacy_note(note)
+            note = self.adopt_compatible_note(note)
             result = dict(note)
             result["verified_at"] = utc()
             result["freshness"] = "content_verified"

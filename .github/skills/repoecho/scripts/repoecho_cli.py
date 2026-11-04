@@ -20,12 +20,15 @@ def repository_root(explicit=None):
     if explicit is not None:
         return repoecho.root_path(explicit)
     if shutil.which("git"):
-        result = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, timeout=30)
+        result = repoecho.git_run(Path.cwd(), "rev-parse", "--show-toplevel")
         if result.returncode == 0:
             return repoecho.root_path(result.stdout.decode("utf-8").strip())
         if "not a git repository" not in result.stderr.decode(errors="replace").lower():
             raise repoecho.CacheError("Git could not identify the repository. Resolve the Git error or specify --root explicitly.")
-    return Path.cwd().resolve()
+    root = Path.cwd().resolve()
+    if not shutil.which("git"):
+        repoecho.require_plain_without_git(root)
+    return root
 
 
 def show_controls(state, root):
@@ -39,8 +42,8 @@ def show_controls(state, root):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__, prog="gh repoecho",
-        epilog="Examples: gh repoecho off; gh repoecho cache on; gh repoecho branch only; gh repoecho benchmark. Put --root and --json before the command.")
+    parser = argparse.ArgumentParser(description=__doc__, prog="repoecho",
+        epilog="Examples: repoecho off; repoecho cache on; repoecho branch only; repoecho benchmark. Put --root and --json before the command.")
     parser.add_argument("--root", help="Explicit repository/subtree; otherwise find the Git worktree root")
     parser.add_argument("--json", action="store_true", help="Machine-readable control/doctor output")
     parser.add_argument("--version", action="version", version=repoecho.VERSION)

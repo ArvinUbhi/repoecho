@@ -2,9 +2,17 @@
 
 RepoEcho uses `MAJOR.MINOR.PATCH` versions. Major changes can break compatibility, minor changes add behaviour, and patches fix issues. `repoecho --version` shows the installed version. Each entry below names the change and links its commit on `main`.
 
+## 1.4.0 — 4 November 2026
+
+- Harden team rollout and cache isolation: preserve knowledge across operational settings changes; separate scan eligibility from evidence compatibility; normalize existing compatible notes without renewing dates.
+- Prevent exported Git environment variables from redirecting repository discovery; require Git for detected checkouts instead of bypassing ignore rules.
+- Serialize overlapping installs, stage launchers uniquely, and recheck downgrades inside the installation lock.
+- Add approved-commit ZIP updates, optional SHA-256 verification, HTTPS-only URL validation and bounded archive extraction.
+- Add team rollout/audit guidance, regression tests and a 5,000-file synthetic benchmark. (This release commit.)
+
 ## 1.3.3 — 4 November 2026
 
-- Preserve cache across compatible RepoEcho updates: separate release and evidence compatibility versions, upgrade verified legacy notes without resetting timestamps, retain branch versions and deduplicate matching revisions. Add regression coverage for updates, migration, branch switching and stale/incompatible evidence. (This release commit.)
+- [Preserve learned cache across compatible RepoEcho updates](https://github.com/ArvinUbhi/repoecho/commit/5056c3bdd9d4a0334bb119d22de3fafe89276ad7): separate release and evidence compatibility versions, upgrade verified legacy notes without resetting timestamps, retain branch versions and deduplicate matching revisions. Add regression coverage for updates, migration, branch switching and stale/incompatible evidence.
 
 ## 1.3.2 — 4 November 2026
 

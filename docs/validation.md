@@ -1,6 +1,6 @@
 # Validation
 
-Recorded on 2 November 2026. All 71 tests passed locally on Linux with Python 3.12.14; this is not a claim of a live GitHub Copilot CLI run. Copilot CLI was not installed in the build environment. Real gh 2.103.3 + uv 0.13.4 integration was exercised in isolated temporary home/config directories, including installation, alias updates, paths with apostrophes/spaces, argument forwarding and the installed benchmark. Format, installation locations and slash commands were checked against GitHub's official documentation linked in the README.
+Updated on 4 November 2026. The 1.4.0 suite ran 104 tests locally on Linux with Python 3.12: 103 passed and one prerequisite-dependent integration test was skipped; this is not a claim of a live GitHub Copilot CLI run. Copilot CLI was not installed in the build environment. Real gh 2.103.3 + uv 0.13.4 integration was exercised in isolated temporary home/config directories, including installation, alias updates, paths with apostrophes/spaces, argument forwarding and the installed benchmark. Format, installation locations and slash commands were checked against GitHub's official documentation linked in the README.
 
 ## Behavioral checks
 
@@ -10,7 +10,7 @@ Run `python3 -m unittest discover -s tests -v` from the repository root. The sui
 - Same-size edits with restored mtime, and strict query validation even with an outdated manifest hash and matching stat signature.
 - Source edits/deletion/renaming, new scope members, empty-to-populated scopes, uncaptured scope changes and new Maven modules.
 - Shared build-file invalidation while unrelated edits preserve focused notes.
-- Capture-to-save races, one-use receipts, receipt expiry, review TTL, policy/configuration invalidation and replacement by stable note ID.
+- Capture-to-save races, one-use receipts, receipt expiry, review TTL, compatible release/settings reuse, incompatible-contract rejection and replacement by stable note ID.
 - Whole-note/evidence budgets, unknown-note-field rejection, stale-body withholding and candidate-only status output.
 - Git ignored/untracked/staged/dirty files, branch changes and reversion, bounded subtree discovery and automatic cache exclusion from normal Git status.
 - Java, Gradle, Maven, Python, JavaScript, Rust, Go and Unicode path discovery.
@@ -79,10 +79,18 @@ Git integration tests switch between main and feature branches that modify the s
 
 ## ZIP updater
 
-The ZIP updater is tested against a local source ZIP without network access: it extracts the expected layout, installs a personal skill into a temporary home, reports semantic version 1.3.1 and refuses a downgrade. The Bash wrapper invokes the same script through uv. Network/proxy access remains environment dependent; use `--zip` with a browser-downloaded ZIP if the scripted download is blocked.
+The ZIP updater is tested against a local source ZIP without network access: it extracts the expected layout, installs a personal skill into a temporary home, reports the current semantic version and refuses a downgrade. The Bash wrapper invokes the same script through uv. Network/proxy access remains environment dependent; use `--zip` with a browser-downloaded ZIP if the scripted download is blocked.
 
 Proxy checks verify that the updater passes a certificate-verifying SSL context and that Python decodes credentials from a percent-encoded `HTTPS_PROXY` URL for proxy authentication. Corporate CA availability and proxy policy cannot be simulated in CI.
 
 ## Per-query context estimate
 
 Compact queries report unique verified source characters, returned note payload characters, and potential tokens avoided using a four-character-per-token approximation. Tests cover positive savings for a large source and zero savings for stale/no-hit retrieval. This is not a measurement of Copilot API token or AIC accounting.
+
+## Team rollout audit (1.4.0)
+
+New regression cases cover exported Git location overrides, missing-Git refusal for checkouts, plain-directory support without Git, operational settings changes, affected-only exclusions, 1.3.3 key adoption, three concurrent installers targeting one installation, downgrade checks, pinned commits, checksum mismatch/success, unsafe archive paths, expanded-size limits and HTTPS URL validation. Existing tests cover separate repositories/worktrees, branch variants, source and scope invalidation, concurrent query processes, settings writers and rollback after installation failure.
+
+A local synthetic Git benchmark with 5,000 Java files, 30 notes and five retrieval runs measured: cold CLI scan 1,046 ms; warm query median 363 ms and sample p95 408 ms; zero manifest files rehashed on the warm scan; three evidence files strictly verified; matching branch revision reused on return. Compact output was 927 characters versus 2,972 for diagnostic output (68.8% smaller). Synthetic note setup took 17.1 seconds. These are helper timings on this Linux environment, not Copilot latency/AIC or corporate Windows measurements. Run `repoecho benchmark --files 5000 --notes 30 --runs 5` locally to repeat.
+
+See [team rollout](team-rollout.md) for acceptance checks and limitations. No live 100-developer deployment or corporate proxy/Copilot pilot has been performed here.

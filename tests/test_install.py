@@ -1,3 +1,6 @@
+import concurrent.futures
+import hashlib
+import importlib.util
 import json
 import io
 import base64
@@ -95,8 +98,8 @@ class InstallTests(unittest.TestCase):
                                     capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
             installed = home / ".copilot/skills/repoecho/scripts/repoecho.py"
-            self.assertIn('VERSION = "1.3.3"', installed.read_text())
-            installed.write_text(installed.read_text().replace('VERSION = "1.3.3"', 'VERSION = "9.0.0"'))
+            self.assertIn('VERSION = "1.4.0"', installed.read_text())
+            installed.write_text(installed.read_text().replace('VERSION = "1.4.0"', 'VERSION = "9.0.0"'))
             result = subprocess.run([sys.executable, str(updater), "--zip", str(archive), "--home", str(home)],
                                     capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0)
@@ -111,7 +114,7 @@ class InstallTests(unittest.TestCase):
         stream = io.BytesIO()
         with zipfile.ZipFile(stream, "w") as bundle:
             bundle.writestr("repoecho-main/tools/install.py", "# placeholder")
-            bundle.writestr("repoecho-main/.github/skills/repoecho/scripts/repoecho.py", 'VERSION = "1.3.3"\n')
+            bundle.writestr("repoecho-main/.github/skills/repoecho/scripts/repoecho.py", 'VERSION = "1.4.0"\n')
         with tempfile.TemporaryDirectory() as home, \
              mock.patch.dict(os.environ, {"HTTPS_PROXY": "http://user:secret@proxy.example:8080"}), \
              mock.patch.object(updater.urllib.request, "urlopen", return_value=io.BytesIO(stream.getvalue())) as download, \
@@ -128,11 +131,90 @@ class InstallTests(unittest.TestCase):
         header = request.get_header("Proxy-authorization")
         self.assertEqual(base64.b64decode(header.split()[1]).decode(), "first:complex@password")
 
+    def updater(self):
+        spec = importlib.util.spec_from_file_location("update_test", PROJECT / ".github/skills/repoecho/scripts/update_repoecho.py")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    def test_concurrent_installers_leave_complete_installation(self):
+        with tempfile.TemporaryDirectory() as home:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
+                results = list(pool.map(lambda _: self.install("--home", home, "--replace"), range(3)))
+            for result in results:
+                self.assertEqual(result.returncode, 0, result.stderr)
+            cli = Path(home) / ".copilot/skills/repoecho/scripts/repoecho_cli.py"
+            result = subprocess.run([sys.executable, str(cli), "--version"], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(result.stdout.strip(), "1.4.0")
+            launcher = Path(home) / ".local/bin" / ("repoecho.cmd" if os.name == "nt" else "repoecho")
+            self.assertIn("RepoEcho CLI launcher", launcher.read_text())
+
+    def test_installer_rechecks_downgrade_under_lock(self):
+        with tempfile.TemporaryDirectory() as home:
+            self.assertEqual(self.install("--home", home).returncode, 0)
+            engine = Path(home) / ".copilot/skills/repoecho/scripts/repoecho.py"
+            engine.write_text(engine.read_text().replace('VERSION = "1.4.0"', 'VERSION = "9.0.0"'))
+            result = self.install("--home", home, "--replace")
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("newer", result.stderr)
+            self.assertIn('VERSION = "9.0.0"', engine.read_text())
+
+    def test_pinned_commit_selection(self):
+        updater = self.updater()
+        commit = "a" * 40
+        with mock.patch.object(updater, "update") as update:
+            updater.main(["--ref", commit])
+            self.assertEqual(update.call_args.args[1], "https://github.com/ArvinUbhi/repoecho/archive/" + commit + ".zip")
+        with mock.patch.object(updater, "update") as update, self.assertRaises(SystemExit):
+            updater.main(["--ref", "main"])
+        update.assert_not_called()
+
+    def test_zip_checksum_verified_before_install(self):
+        updater = self.updater()
+        with tempfile.TemporaryDirectory() as temp:
+            archive = Path(temp) / "source.zip"
+            with zipfile.ZipFile(archive, "w") as bundle:
+                bundle.writestr("repoecho-main/tools/install.py", "# fixture")
+                bundle.writestr("repoecho-main/.github/skills/repoecho/scripts/repoecho.py", 'VERSION = "1.4.0"\n')
+            checksum = hashlib.sha256(archive.read_bytes()).hexdigest()
+            with mock.patch.object(updater.subprocess, "run") as install:
+                with self.assertRaisesRegex(ValueError, "SHA-256"):
+                    updater.update(archive, home=Path(temp) / "home", sha256="0" * 64)
+                install.assert_not_called()
+                updater.update(archive, home=Path(temp) / "home", sha256=checksum)
+                install.assert_called_once()
+
+    def test_unsafe_or_oversized_archives_are_rejected(self):
+        updater = self.updater()
+        with tempfile.TemporaryDirectory() as temp:
+            archive = Path(temp) / "source.zip"
+            for bad in ("../escape", "C:/escape", "repo/../escape", "repo/C:escape", "repo\\escape"):
+                with self.subTest(path=bad), zipfile.ZipFile(archive, "w") as bundle:
+                    bundle.writestr(bad, "bad")
+                with mock.patch.object(updater.subprocess, "run") as install, self.assertRaises(ValueError):
+                    updater.update(archive, home=Path(temp) / "home")
+                install.assert_not_called()
+            with zipfile.ZipFile(archive, "w") as bundle:
+                bundle.writestr("repo/file", "12345")
+            with mock.patch.object(updater, "MAX_EXPANDED_BYTES", 4), self.assertRaisesRegex(ValueError, "size limits"):
+                updater.update(archive, home=Path(temp) / "home")
+
+    def test_update_rejects_plain_http_and_url_credentials(self):
+        updater = self.updater()
+        for url in ("http://example.com/source.zip", "https://user:password@example.com/source.zip"):
+            with self.subTest(url=url), mock.patch.object(updater.urllib.request, "urlopen") as fetch:
+                with self.assertRaisesRegex(ValueError, "HTTPS without embedded credentials"):
+                    updater.update(url=url)
+                fetch.assert_not_called()
+
     def test_project_install(self):
         with tempfile.TemporaryDirectory() as root:
             result = self.install("--project", root)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertTrue((Path(root) / ".github/skills/repoecho/scripts/repoecho.py").is_file())
+            self.assertFalse((Path(root) / ".github/skills/.repoecho-install.lock").exists())
+            self.assertTrue((Path(root) / ".repoecho/.gitignore").exists())
 
 
 if __name__ == "__main__":

@@ -294,7 +294,7 @@ class CacheTests(unittest.TestCase):
         m.remember(self.note(), capture["receipt"])
         m.scan()
         self.assertIsNone(m.validity(legacy["evidence"], allow_legacy=True))
-        m.adopt_legacy_note(legacy)
+        m.adopt_compatible_note(legacy)
         rows = m.db.execute("SELECT payload FROM notes").fetchall()
         self.assertEqual(len(rows), 1)
         self.assertEqual(json.loads(rows[0][0])["evidence"]["origin"]["branches"], ["feature", "main"])
@@ -353,17 +353,63 @@ class CacheTests(unittest.TestCase):
         with self.assertRaisesRegex(repoecho.CacheError, "recapture"):
             m.remember(self.note(), captured["receipt"])
 
-    def test_configuration_change_invalidates(self):
-        self.learn()
-        self.write(".repoecho.json", '{"note_ttl_days": 14}')
-        result = self.open().query("process")
-        self.assertEqual(result["hits"], [])
-        self.assertEqual(result["stale"][0]["reason"], "configuration_changed")
-
-    def test_policy_change_invalidates(self):
+    def test_operational_configuration_preserves_notes_and_receipts(self):
         m = self.learn()
-        m.policy = "updated-policy"
-        self.assertEqual(m.query("process")["hits"], [])
+        before = m.query("process")["hits"][0]
+        captured = m.capture([self.source], [], 24000)
+        self.write(".repoecho.json", json.dumps({"note_ttl_days": 14, "full_verify_hours": 2, "max_note_versions": 3}))
+        m = self.open()
+        after = m.query("process")["hits"][0]
+        self.assertEqual(after["revision"], before["revision"])
+        self.assertEqual(after["evidence"]["expires_epoch"], before["evidence"]["expires_epoch"])
+        m.remember(self.note("second"), captured["receipt"])
+
+    def test_exclusions_only_withhold_affected_evidence(self):
+        self.learn()
+        self.write(".repoecho.json", json.dumps({"exclude": ["unrelated/**"]}))
+        self.assertEqual(len(self.open().query("process")["hits"]), 1)
+        self.write(".repoecho.json", json.dumps({"exclude": [self.source]}))
+        self.assertEqual(self.open().query("process")["hits"], [])
+        self.write(".repoecho.json", "{}")
+        self.assertEqual(len(self.open().query("process")["hits"]), 1)
+
+    def test_133_policy_is_upgraded_with_dates_intact(self):
+        m = self.learn()
+        row = json.loads(m.db.execute("SELECT payload FROM notes").fetchone()[0])
+        row["evidence"]["policy"] = repoecho.digest({"compatibility": 1, "config": m.config, "exclude": m.excludes})
+        with m.db:
+            m.db.execute("UPDATE notes SET payload=?", (repoecho.packed(row),))
+        hit = self.open().query("process")["hits"][0]
+        self.assertEqual(hit["evidence"]["expires_epoch"], row["evidence"]["expires_epoch"])
+        self.assertEqual(hit["evidence"]["policy"], self.memory.policy)
+
+    def test_git_environment_cannot_redirect_repo_discovery(self):
+        self.git_init()
+        self.git("add", ".")
+        self.git("commit", "-m", "fixture")
+        self.write(".gitignore", "private.txt\n")
+        self.write("private.txt", "ignored data")
+        with mock.patch.dict(os.environ, {"GIT_DIR": str(self.root / "wrong.git"),
+                                         "GIT_WORK_TREE": str(self.root / "wrong"),
+                                         "GIT_INDEX_FILE": str(self.root / "wrong-index")}):
+            m = self.open()
+            self.assertEqual(m.scan()["git"]["branch"], "main")
+            self.assertNotIn("private.txt", m.manifest)
+            self.assertEqual(repoecho.Controls(self.root).report()["current_branch"], "main")
+
+    def test_missing_git_does_not_bypass_gitignore(self):
+        self.git_init()
+        self.write(".gitignore", "private.txt\n")
+        self.write("private.txt", "ignored data")
+        with mock.patch.object(repoecho.shutil, "which", return_value=None):
+            with self.assertRaisesRegex(repoecho.CacheError, "Git is required"):
+                self.open().scan()
+            with self.assertRaisesRegex(repoecho.CacheError, "Git is required"):
+                repoecho.Controls(self.root)
+
+    def test_plain_directory_works_without_git(self):
+        with mock.patch.object(repoecho.shutil, "which", return_value=None):
+            self.assertEqual(self.open().scan()["files"], 2)
 
     def test_periodic_full_verification(self):
         m = self.open()

@@ -13,6 +13,13 @@ import subprocess
 import json
 import os
 import tempfile
+import re
+
+import importlib.util
+
+_engine_spec = importlib.util.spec_from_file_location("repoecho_install_engine", Path(__file__).with_name("repoecho.py"))
+repoecho = importlib.util.module_from_spec(_engine_spec)
+_engine_spec.loader.exec_module(repoecho)
 
 
 def alias_expansion(destination):
@@ -96,8 +103,10 @@ def write_command(destination, home, persist_path):
     target.parent.mkdir(parents=True, exist_ok=True)
     if target.is_symlink() or (target.exists() and "RepoEcho CLI launcher" not in target.read_text(encoding="utf-8")):
         raise RuntimeError("An unrelated repoecho command already exists at " + str(target) + "; no command was replaced.")
-    staged = target.with_name(target.name + ".tmp")
-    staged.write_text(command_text(destination), encoding="utf-8")
+    fd, name = tempfile.mkstemp(prefix=".repoecho-launcher-", dir=target.parent)
+    staged = Path(name)
+    with os.fdopen(fd, "w", encoding="utf-8") as output:
+        output.write(command_text(destination))
     if os.name != "nt":
         staged.chmod(0o755)
     try:
@@ -125,9 +134,19 @@ def main(argv=None):
         parser.error("Use --gh with a personal installation, then control any repository from its working directory.")
     if args.replace_alias and not args.gh:
         parser.error("--replace-alias requires --gh")
-    source = Path(__file__).resolve().parents[1]
     personal_home = (args.home or Path.home()).expanduser().resolve()
     base = args.project.expanduser().resolve() / ".github/skills" if args.project else personal_home / ".copilot/skills"
+    try:
+        base.mkdir(parents=True, exist_ok=True)
+        lock_dir = repoecho.cache_directory(args.project.expanduser().resolve(), create=True) if args.project else base
+        with repoecho.control_lock(lock_dir, filename=".repoecho-install.lock", purpose="installation"):
+            return install_locked(args, parser, personal_home, base)
+    except (repoecho.CacheError, OSError, RuntimeError, subprocess.SubprocessError) as exc:
+        parser.error(str(exc))
+
+
+def install_locked(args, parser, personal_home, base):
+    source = Path(__file__).resolve().parents[1]
     dest = base / "repoecho"
     try:
         prepared = prepare_alias(dest, args.replace_alias) if args.gh else None
@@ -147,6 +166,15 @@ def main(argv=None):
     if dest.exists():
         if not args.replace:
             parser.error("Destination exists; review it and rerun with --replace to update.")
+        # Recheck under the install lock: two downloaded updates may have
+        # observed the same old version before either began installation.
+        installed_engine = dest / "scripts/repoecho.py"
+        if installed_engine.is_file():
+            pattern = r'^VERSION = "(\d+)\.(\d+)\.(\d+)"$'
+            old = re.search(pattern, installed_engine.read_text(encoding="utf-8"), re.M)
+            new = re.search(pattern, (source / "scripts/repoecho.py").read_text(encoding="utf-8"), re.M)
+            if old and new and tuple(map(int, old.groups())) > tuple(map(int, new.groups())):
+                parser.error("Refusing to replace a newer RepoEcho installation with an older version.")
         if not (dest / "SKILL.md").is_file():
             parser.error("Existing destination is not a skill directory; no files changed.")
     base.mkdir(parents=True, exist_ok=True)

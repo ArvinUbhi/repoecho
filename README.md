@@ -8,7 +8,7 @@ The aim is less repeated exploration and more focused context for your task. It 
 
 ## 1. Install once
 
-You need **GitHub Copilot CLI** and [uv](https://docs.astral.sh/uv/getting-started/installation/). Git enables branch tracking. **GitHub CLI (`gh`) is optional.**
+You need **GitHub Copilot CLI** and [uv](https://docs.astral.sh/uv/getting-started/installation/). Git is required for Git checkouts and branch tracking. Plain folders can be used without Git. **GitHub CLI (`gh`) is optional.**
 
 Download this repository using **Code → Download ZIP**, then extract it. In PowerShell, from the directory containing `repoecho-main`, run:
 
@@ -252,7 +252,7 @@ Close Copilot to release the installed skill folder. From a new PowerShell or te
 repoecho update
 ```
 
-The command downloads the latest public GitHub ZIP over HTTPS, extracts it in a temporary folder and runs the installer with `--replace`. It reports the installed and downloaded **MAJOR.MINOR.PATCH** versions (`repoecho --version` shows the installed version). The downloaded ZIP is removed after installation. It uses uv's Python 3.12, not system Python. Your application's `.repoecho` cache stays in that application directory. Routine RepoEcho updates preserve learned notes across branches. Release numbers, helper code and documentation edits no longer invalidate the cache. On your next query, older notes are automatically upgraded only after their source files and scope hashes match; their original review deadlines stay unchanged. Notes from other branches remain available for verification when you switch back. You do not need to delete the cache or relearn unchanged workflows. Changes to your repository evidence, cache configuration, review expiry or an explicitly incompatible cache format can still require refreshing affected notes.
+The command downloads the latest public GitHub ZIP over HTTPS, extracts it in a temporary folder and runs the installer with `--replace`. It reports the installed and downloaded **MAJOR.MINOR.PATCH** versions (`repoecho --version` shows the installed version). The downloaded ZIP is removed after installation. It uses uv's Python 3.12, not system Python. Your application's `.repoecho` cache stays in that application directory. Routine RepoEcho updates preserve learned notes across branches. Release numbers, helper code and documentation edits no longer invalidate the cache. On your next query, older notes are automatically upgraded only after their source files and scope hashes match; their original review deadlines stay unchanged. Notes from other branches remain available for verification when you switch back. You do not need to delete the cache or relearn unchanged workflows. Changes to captured files or scope membership, review expiry or an explicitly incompatible cache format can still require refreshing affected notes. Tuning scan frequency, retention or the lifetime for newly saved notes does not invalidate existing knowledge. Exclusions and file-size limits only withhold notes whose evidence is affected.
 
 ### Work proxy and SSL certificates
 
@@ -320,10 +320,29 @@ for this repository and report its note ID and freshness.
 
 From a new terminal, `repoecho status` should also work. If caching is off, that should be reported rather than silently enabled. If no valid note exists, ask Copilot to learn a relevant workflow.
 
+## Roll out to a team
+
+Install once per developer, then use the same command in each application repository. Each clone/worktree keeps its own local `.repoecho` cache; nothing is pooled between developers or repositories. Keep caches on a local disk, outside OneDrive/network shares.
+
+For controlled updates, approve a commit and have everyone install that exact build:
+
+```powershell
+repoecho update --ref YOUR_APPROVED_FULL_COMMIT_SHA
+```
+
+For a ZIP distributed by your team, verify its approved checksum before installation:
+
+```powershell
+repoecho update --zip "C:\Downloads\repoecho-approved.zip" --sha256 YOUR_APPROVED_SHA256
+```
+
+These options require 1.4.0 or later; use the existing browser ZIP update once to upgrade older installations. The checksum must come from your trusted team distribution channel. See the [team rollout guide and audit](docs/team-rollout.md) for the 5 → 20 → 100 pilot, proxy setup, measurements and current limits.
+
 ## Troubleshooting
 
 - **Python fails to start?** Run `uv python install 3.12`, then `uv run --python 3.12 python --version` before retrying setup.
 - **Access denied when replacing the skill?** Close Copilot sessions and retry. A folder lock or permissions may prevent replacement. For a project-local installation, use `--project "C:\path\to\your-app"` instead.
+- **Git is required / Git rejected this directory?** Restore Git on PATH and resolve Git access first. RepoEcho will not bypass Git ignore rules by silently scanning the filesystem.
 - **Caching unexpectedly off?** Ask Copilot for RepoEcho status or run the direct `status` command above.
 - **Only AGENTS.md appears in `/instructions`?** You can put the section there. If using `.github/copilot-instructions.md`, check the exact filename (not `.md.txt`) and that it is in your application repository, then run `/new` and `/instructions`.
 - **Copilot cannot see the skill?** Run `/skills info repoecho` after reloading.
