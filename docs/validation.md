@@ -79,4 +79,6 @@ Git integration tests switch between main and feature branches that modify the s
 
 ## ZIP updater
 
-The ZIP updater is tested against a local source ZIP without network access: it extracts the expected layout, installs a personal skill into a temporary home, reports semantic version 1.3.0 and refuses a downgrade. The Bash wrapper invokes the same script through uv. Network/proxy access remains environment dependent; use `--zip` with a browser-downloaded ZIP if the scripted download is blocked.
+The ZIP updater is tested against a local source ZIP without network access: it extracts the expected layout, installs a personal skill into a temporary home, reports semantic version 1.3.1 and refuses a downgrade. The Bash wrapper invokes the same script through uv. Network/proxy access remains environment dependent; use `--zip` with a browser-downloaded ZIP if the scripted download is blocked.
+
+Proxy checks verify that the updater passes a certificate-verifying SSL context and that Python decodes credentials from a percent-encoded `HTTPS_PROXY` URL for proxy authentication. Corporate CA availability and proxy policy cannot be simulated in CI.

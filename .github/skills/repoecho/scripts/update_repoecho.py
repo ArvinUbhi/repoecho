@@ -5,6 +5,9 @@
 # ///
 """Download the public RepoEcho ZIP and replace the personal skill."""
 import argparse
+import os
+import ssl
+from urllib.parse import urlsplit
 from pathlib import Path
 import re
 import shutil
@@ -26,15 +29,24 @@ def version(path):
     return tuple(map(int, match.groups()))
 
 
-def update(zip_path=None, url=URL, home=None):
+def update(zip_path=None, url=URL, home=None, ca_cert=None):
     with tempfile.TemporaryDirectory(prefix="repoecho-update-") as temp:
         temp = Path(temp)
         archive = temp / "repoecho.zip"
         if zip_path:
             shutil.copyfile(zip_path, archive)
         else:
+            proxy = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy")
+            if proxy:
+                parsed_proxy = urlsplit(proxy)
+                if not parsed_proxy.hostname:
+                    raise ValueError("HTTPS_PROXY is not a valid proxy URL")
+                print("Using HTTPS_PROXY from this shell for the download (credentials hidden).", flush=True)
             print("Downloading RepoEcho ZIP from " + url, flush=True)
-            with urllib.request.urlopen(url, timeout=60) as response, archive.open("wb") as output:
+            # urllib reads HTTPS_PROXY itself and sends proxy URL credentials for CONNECT.
+            # Retain TLS verification; a corporate interception certificate needs a CA file.
+            context = ssl.create_default_context(cafile=str(ca_cert) if ca_cert else None)
+            with urllib.request.urlopen(url, timeout=60, context=context) as response, archive.open("wb") as output:
                 shutil.copyfileobj(response, output)
         with zipfile.ZipFile(archive) as bundle:
             names = bundle.namelist()
@@ -71,11 +83,23 @@ def main(argv=None):
     parser.add_argument("--zip", type=Path, help="Browser-downloaded ZIP when the proxy blocks scripted downloads")
     parser.add_argument("--url", default=URL, help="ZIP URL; default is the public main branch")
     parser.add_argument("--home", type=Path, help="Portable/test installation home; do not alter current user PATH")
+    parser.add_argument("--ca-cert", type=Path, help="Corporate TLS CA PEM certificate for HTTPS proxy interception")
     args = parser.parse_args(argv)
     try:
-        update(args.zip, args.url, args.home)
+        update(args.zip, args.url, args.home, args.ca_cert)
     except (OSError, ValueError, zipfile.BadZipFile, urllib.error.URLError, subprocess.CalledProcessError) as exc:
-        parser.exit(1, f"Update failed: {exc}\nIf your proxy blocks this download, save the ZIP in your browser and run repoecho update --zip PATH\n")
+        # Proxy URLs can contain credentials. Never echo a raw network exception that
+        # might include an environment URL or authentication header.
+        if isinstance(exc, ssl.SSLCertVerificationError) or "CERTIFICATE_VERIFY_FAILED" in str(exc):
+            reason = "TLS certificate verification failed. Supply your corporate CA PEM with --ca-cert PATH, or use --zip with a browser download."
+        elif isinstance(exc, urllib.error.URLError):
+            reason = "HTTPS download failed through this shell's proxy. Check HTTPS_PROXY and your corporate CA, or use --zip with a browser download."
+        else:
+            reason = str(exc)
+        for value in (os.environ.get("HTTPS_PROXY"), os.environ.get("https_proxy")):
+            if value:
+                reason = reason.replace(value, "[proxy credentials hidden]")
+        parser.exit(1, "Update failed: " + reason + "\n")
     return 0
 
 

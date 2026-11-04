@@ -1,0 +1,31 @@
+# Changelog
+
+RepoEcho uses `MAJOR.MINOR.PATCH` versions. Major changes can break compatibility, minor changes add behaviour, and patches fix issues. `repoecho --version` shows the installed version. Each entry below names the change and links its commit on `main`.
+
+## 1.3.1 — 4 November 2026
+
+- Use `HTTPS_PROXY` inherited from PowerShell, keep TLS certificate verification, accept `--ca-cert` for corporate TLS interception, and explain the browser ZIP fallback. (This release commit.)
+
+## 1.3.0 — 4 November 2026
+
+- [Add uv Bash ZIP updater and version 1.3.0](https://github.com/ArvinUbhi/repoecho/commit/8862a7ba355fbe4e74d3950d3480ae378a017839): download/extract/install from a public ZIP, with an offline ZIP option and downgrade check.
+
+## Earlier commits — 3 November 2026
+
+- [Fix Windows installer test for short and long path aliases](https://github.com/ArvinUbhi/repoecho/commit/904ad5172697358a7696ed6f9c44ca3bdc2d5b24): compare the actual installed file across Windows path spellings.
+- [Install repo echo command on user PATH without GitHub CLI](https://github.com/ArvinUbhi/repoecho/commit/517f23fde96368206fbd896fab134cc966dfe3e9): personal `repoecho` launcher and Windows/POSIX PATH setup.
+- [Retain matching workflow revisions across Git branches](https://github.com/ArvinUbhi/repoecho/commit/689514ecadfa6c2c48e7bbe188f509039d9b977d): protect the latest learned revision per branch.
+- [Rank workflow matches and add retrieval and Copilot usage evaluations](https://github.com/ArvinUbhi/repoecho/commit/a4d3706df94644697311bd6b7916eb6808022a65): component-aware ranking and AIC study sheet.
+- [Add natural-language aliases and compact verified agent retrieval](https://github.com/ArvinUbhi/repoecho/commit/685db0ff21f758f8455a88580bf85f245f5c6f43): aliases, compact output and measured output reduction.
+- [Reduce redundant cache work and adapt focused workflow notes](https://github.com/ArvinUbhi/repoecho/commit/65551141ec2bb38db9c280026d23b1c7fbebbb66): avoid repeated scans and refine workflow notes.
+- [Make updating easy for ZIP and Git installations](https://github.com/ArvinUbhi/repoecho/commit/a36b37bcfb8e4812e6e7dbe8bd9e6b7106d53005): documented update steps.
+- [Make ongoing learning and verified cache population explicit](https://github.com/ArvinUbhi/repoecho/commit/b4d70b43ec64e49d3ccd0ef0b6df5b5ab634b770): capture and save useful findings while working.
+- [Simplify setup and explain instruction refresh and branch reuse](https://github.com/ArvinUbhi/repoecho/commit/4c5032a0f82ebcb0a4c648e759fad31a17fdd5b1): README setup and branch examples.
+- [Document default Copilot workflow through RepoEcho scripts](https://github.com/ArvinUbhi/repoecho/commit/f3d194fcb1b7b0b639efdfd986a336c3203991bd): standing Copilot instructions.
+- [Make gh optional and document Windows ZIP setup with uv](https://github.com/ArvinUbhi/repoecho/commit/5901cf82d3224c866cdb85fa6e8b59ae5dc73255): no-gh installation.
+- [Rewrite README around user setup and everyday usage](https://github.com/ArvinUbhi/repoecho/commit/f1a42df935616c0667e4ff7cea02d9d096f8e0bb): user-focused guide.
+- [Simplify RepoEcho with uv setup, gh controls and portable benchmarks](https://github.com/ArvinUbhi/repoecho/commit/70db80e7748d1a1f614897d933fb484e64eb32fb): initial command controls and benchmark.
+- [Add mode controls, Git-aware change tracking and isolated branch-aware caches](https://github.com/ArvinUbhi/repoecho/commit/586a124): settings and repository isolation.
+- [Handle Windows timestamp differences without weakening source-read validation](https://github.com/ArvinUbhi/repoecho/commit/672c538): Windows file metadata handling.
+- [Build RepoEcho two-pass repository knowledge cache for Copilot CLI](https://github.com/ArvinUbhi/repoecho/commit/a1eb947): first working cache and skill.
+- [Initial commit](https://github.com/ArvinUbhi/repoecho/commit/fd008ac): repository start.

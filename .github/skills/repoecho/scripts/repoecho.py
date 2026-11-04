@@ -27,7 +27,7 @@ import tempfile
 import time
 import uuid
 
-VERSION = "1.3.0"
+VERSION = "1.3.1"
 SCHEMA = "1"
 CACHE = ".repoecho"
 DEFAULTS = {"exclude": [], "max_file_bytes": 1_048_576,

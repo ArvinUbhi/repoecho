@@ -37,3 +37,5 @@ To update: pull the trusted RepoEcho checkout, rerun its installer with `--gh --
 If uv is unavailable, Python 3.10+ can execute `scripts/repoecho_cli.py` directly. If gh is unavailable, ordinary installation provides both the Copilot skill and the `repoecho` command. Never claim gh setup succeeded if its prerequisite checks or alias registration failed.
 
 To update a personal installation without Git or gh, use `repoecho update`; to use a browser-downloaded ZIP, run `repoecho update --zip PATH`. The bundled `tools/update.sh` invokes the same updater through uv from a downloaded checkout. The updater compares semantic MAJOR.MINOR.PATCH versions, rejects downgrades and calls the installer with `--replace`. Close Copilot first on Windows to avoid folder locks.
+
+For corporate proxies, `repoecho update` inherits `HTTPS_PROXY` from the calling PowerShell environment, including credentials set by its profile. It never prints the proxy URL. If TLS verification fails because of corporate interception, use `repoecho update --ca-cert PATH` with an IT-provided PEM root certificate, or use a browser-downloaded `--zip PATH`. Do not disable certificate verification.

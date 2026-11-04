@@ -1,4 +1,8 @@
 import json
+import io
+import base64
+import urllib.request
+import ssl
 import zipfile
 import os
 import re
@@ -8,6 +12,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 PROJECT = Path(__file__).resolve().parents[1]
 
@@ -90,12 +95,38 @@ class InstallTests(unittest.TestCase):
                                     capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
             installed = home / ".copilot/skills/repoecho/scripts/repoecho.py"
-            self.assertIn('VERSION = "1.3.0"', installed.read_text())
-            installed.write_text(installed.read_text().replace('VERSION = "1.3.0"', 'VERSION = "9.0.0"'))
+            self.assertIn('VERSION = "1.3.1"', installed.read_text())
+            installed.write_text(installed.read_text().replace('VERSION = "1.3.1"', 'VERSION = "9.0.0"'))
             result = subprocess.run([sys.executable, str(updater), "--zip", str(archive), "--home", str(home)],
                                     capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn('VERSION = "9.0.0"', installed.read_text())
+
+    def test_proxy_environment_download_keeps_tls_verification(self):
+        import importlib.util
+        updater_path = PROJECT / ".github/skills/repoecho/scripts/update_repoecho.py"
+        spec = importlib.util.spec_from_file_location("updater", updater_path)
+        updater = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(updater)
+        stream = io.BytesIO()
+        with zipfile.ZipFile(stream, "w") as bundle:
+            bundle.writestr("repoecho-main/tools/install.py", "# placeholder")
+            bundle.writestr("repoecho-main/.github/skills/repoecho/scripts/repoecho.py", 'VERSION = "1.3.1"\n')
+        with tempfile.TemporaryDirectory() as home, \
+             mock.patch.dict(os.environ, {"HTTPS_PROXY": "http://user:secret@proxy.example:8080"}), \
+             mock.patch.object(updater.urllib.request, "urlopen", return_value=io.BytesIO(stream.getvalue())) as download, \
+             mock.patch.object(updater.subprocess, "run"):
+            updater.update(home=home)
+            self.assertEqual(download.call_args.kwargs["context"].verify_mode, ssl.CERT_REQUIRED)
+            self.assertNotIn("secret", str(download.call_args))
+
+    def test_python_proxy_handler_uses_profile_url_credentials(self):
+        proxy = "http://first:complex%40password@proxy.example:8080"
+        request = urllib.request.Request("https://github.com/ArvinUbhi/repoecho/archive/refs/heads/main.zip")
+        with mock.patch.object(urllib.request, "proxy_bypass", return_value=False):
+            urllib.request.ProxyHandler({"https": proxy}).proxy_open(request, proxy, "https")
+        header = request.get_header("Proxy-authorization")
+        self.assertEqual(base64.b64decode(header.split()[1]).decode(), "first:complex@password")
 
     def test_project_install(self):
         with tempfile.TemporaryDirectory() as root:

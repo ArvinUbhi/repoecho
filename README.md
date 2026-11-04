@@ -248,6 +248,18 @@ repoecho update
 
 The command downloads the latest public GitHub ZIP over HTTPS, extracts it in a temporary folder and runs the installer with `--replace`. It reports the installed and downloaded **MAJOR.MINOR.PATCH** versions (`repoecho --version` shows the installed version). The downloaded ZIP is removed after installation. It uses uv's Python 3.12, not system Python. Your application's `.repoecho` cache stays in that application directory. After a skill version update, notes may need verification or refreshing under the new policy.
 
+### Work proxy and SSL certificates
+
+The updater inherits `HTTPS_PROXY` from the **PowerShell process that launches it**. If your PowerShell profile sets `$env:HTTPS_PROXY = 'http://username:password@proxy.example:8080'`, start a new PowerShell window so that profile has run, then execute `repoecho update`. The updater does not print the proxy URL or credentials. If your password contains `@`, `#`, `:` or other URL punctuation, percent-encode those characters in the proxy URL. Avoid putting a password directly in a command argument.
+
+An **SSL certificate verification failure** usually means the proxy presents a corporate certificate that Python does not trust. Ask your IT team for the corporate root CA in PEM format and run:
+
+```powershell
+repoecho update --ca-cert "C:\path\to\corporate-root-ca.pem"
+```
+
+TLS verification stays enabled. If your company does not provide a PEM file, use the browser ZIP option below; it performs no network request from the updater. The already installed 1.3.0 updater does not yet understand `--ca-cert`, so use the ZIP option once to install 1.3.1. `HTTPS_PROXY` must be available in the same PowerShell session where you run `repoecho`; a setting in a different shell's profile is not inherited.
+
 If your work proxy allows **browser downloads but blocks scripted downloads**, [save the current ZIP in your browser](https://github.com/ArvinUbhi/repoecho/archive/refs/heads/main.zip), then run:
 
 ```powershell
@@ -312,6 +324,8 @@ From a new terminal, `repoecho status` should also work. If caching is off, that
 - **Need offline use, team setup or optional gh alias repair?** See the [setup guide](.github/skills/repoecho/references/setup.md).
 
 ## More detail
+
+See the [changelog](CHANGELOG.md) for releases and named commits.
 
 RepoEcho checks whether saved evidence has changed; it cannot guarantee that every saved interpretation is correct. Copilot should still read relevant code before editing. Binary files and common generated folders are excluded.
 
