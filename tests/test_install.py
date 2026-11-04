@@ -95,8 +95,8 @@ class InstallTests(unittest.TestCase):
                                     capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
             installed = home / ".copilot/skills/repoecho/scripts/repoecho.py"
-            self.assertIn('VERSION = "1.3.1"', installed.read_text())
-            installed.write_text(installed.read_text().replace('VERSION = "1.3.1"', 'VERSION = "9.0.0"'))
+            self.assertIn('VERSION = "1.3.2"', installed.read_text())
+            installed.write_text(installed.read_text().replace('VERSION = "1.3.2"', 'VERSION = "9.0.0"'))
             result = subprocess.run([sys.executable, str(updater), "--zip", str(archive), "--home", str(home)],
                                     capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0)
@@ -111,7 +111,7 @@ class InstallTests(unittest.TestCase):
         stream = io.BytesIO()
         with zipfile.ZipFile(stream, "w") as bundle:
             bundle.writestr("repoecho-main/tools/install.py", "# placeholder")
-            bundle.writestr("repoecho-main/.github/skills/repoecho/scripts/repoecho.py", 'VERSION = "1.3.1"\n')
+            bundle.writestr("repoecho-main/.github/skills/repoecho/scripts/repoecho.py", 'VERSION = "1.3.2"\n')
         with tempfile.TemporaryDirectory() as home, \
              mock.patch.dict(os.environ, {"HTTPS_PROXY": "http://user:secret@proxy.example:8080"}), \
              mock.patch.object(updater.urllib.request, "urlopen", return_value=io.BytesIO(stream.getvalue())) as download, \

@@ -82,3 +82,7 @@ Git integration tests switch between main and feature branches that modify the s
 The ZIP updater is tested against a local source ZIP without network access: it extracts the expected layout, installs a personal skill into a temporary home, reports semantic version 1.3.1 and refuses a downgrade. The Bash wrapper invokes the same script through uv. Network/proxy access remains environment dependent; use `--zip` with a browser-downloaded ZIP if the scripted download is blocked.
 
 Proxy checks verify that the updater passes a certificate-verifying SSL context and that Python decodes credentials from a percent-encoded `HTTPS_PROXY` URL for proxy authentication. Corporate CA availability and proxy policy cannot be simulated in CI.
+
+## Per-query context estimate
+
+Compact queries report unique verified source characters, returned note payload characters, and potential tokens avoided using a four-character-per-token approximation. Tests cover positive savings for a large source and zero savings for stale/no-hit retrieval. This is not a measurement of Copilot API token or AIC accounting.

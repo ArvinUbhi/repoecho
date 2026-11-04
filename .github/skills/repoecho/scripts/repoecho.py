@@ -27,7 +27,7 @@ import tempfile
 import time
 import uuid
 
-VERSION = "1.3.1"
+VERSION = "1.3.2"
 SCHEMA = "1"
 CACHE = ".repoecho"
 DEFAULTS = {"exclude": [], "max_file_bytes": 1_048_576,
@@ -544,6 +544,7 @@ class Memory:
         current = {}
         safe_parents = {self.root}
         self.verified = {}
+        self.source_chars = {}
         self.db.execute("BEGIN IMMEDIATE")
         try:
             for rel in self.paths():
@@ -636,6 +637,8 @@ class Memory:
             try:
                 source = self.read_source(rel)
                 self.verified[rel] = source[0] if source else None
+                if source:
+                    self.source_chars[rel] = len(source[2])
             except (FileNotFoundError, CacheError):
                 self.verified[rel] = None
         return self.verified[rel]
@@ -810,6 +813,7 @@ class Memory:
         hits, stale, omitted = [], [], 0
         returned_ids = set()
         used, checked = 0, 0
+        returned_sources = set()
         for row in self.ranked(query):
             note = json.loads(row[0])
             if note["id"] in returned_ids:
@@ -832,6 +836,7 @@ class Memory:
                 omitted += 1
                 continue
             hits.append(result)
+            returned_sources.update(note["evidence"]["sources"])
             returned_ids.add(note["id"])
             used += cost
             if len(hits) >= limit:
@@ -846,6 +851,20 @@ class Memory:
         if compact:
             response.pop("scan", None)
             response.pop("search_backend", None)
+            source_chars = sum(self.source_chars[path] for path in returned_sources)
+            # Approximation of hypothetical prompt context: all captured source
+            # texts versus returned compact note payloads. This is NOT usage data.
+            estimated_source_tokens = math.ceil(source_chars / 4)
+            estimated_note_tokens = math.ceil(used / 4)
+            response["context_estimate"] = {
+                "verified_source_files": len(returned_sources),
+                "source_chars": source_chars, "returned_note_chars": used,
+                "estimated_source_tokens": estimated_source_tokens,
+                "estimated_note_tokens": estimated_note_tokens,
+                "estimated_tokens_avoided": max(0, estimated_source_tokens - estimated_note_tokens),
+                "estimated_reduction_percent": round(100 * max(0, estimated_source_tokens - estimated_note_tokens) / estimated_source_tokens, 1) if estimated_source_tokens else 0,
+                "method": "Hypothetical full captured-source text versus compact note payload, ~4 chars/token. Not actual Copilot tokens, AIC, or whole-repository savings."
+            }
         return response
 
     def plan(self, query="", limit=20):

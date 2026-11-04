@@ -111,6 +111,12 @@ note IDs and freshness returned by the script, and learn anything missing.
 
 Look for a relevant saved note marked `content_verified`. A successful capture alone does not save a note; the skill must also save it with `remember`. If no valid note exists, Copilot should read the source and refresh its knowledge.
 
+## See a per-prompt context estimate
+
+When Copilot reuses a verified note, RepoEcho compares the text length of its **captured source files** with the compact note text returned. It reports an approximate potential context saving (about four characters per token). For example: `RepoEcho: reused shutdown-flow; ~1,200 potential source-context tokens avoided (estimate).`
+
+This is a hypothetical comparison for the files behind the note. It does **not** measure billed Copilot tokens, AIC, thinking time, or the entire repository. Copilot might have opened fewer files without the cache, and learning and validation have costs. With no verified hit, the estimate is zero. `repoecho --json query "shutdown" --compact` exposes the `context_estimate` numbers. For actual AIC savings use the [matched-run study](#measure-real-copilot-usage).
+
 ## Ask naturally — no workflow names to remember
 
 Ask **“What happens when I stop a running job?”** or **“How does process termination work?”** Copilot translates the request into relevant search terms and checks whether the returned notes answer it. You do not need to know that a saved note is called `workflow-shutdown`.

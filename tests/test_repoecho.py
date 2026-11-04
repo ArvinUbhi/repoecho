@@ -372,6 +372,34 @@ class CacheTests(unittest.TestCase):
         self.assertEqual(result["hits"], [])
         self.assertTrue(result["stale"])
 
+    def test_context_estimate_uses_verified_sources_and_compact_payload(self):
+        source_text = "class ProcessManager {\n" + ("    void run() {}\n" * 500) + "}\n"
+        self.write(self.source, source_text)
+        m = self.open()
+        receipt = m.capture([self.source], [], 24000)["receipt"]
+        m.remember({"id": "workflow", "title": "Process run", "summary": "Runs work."}, receipt)
+        response = m.query("process run", compact=True)
+        estimate = response["context_estimate"]
+        self.assertEqual(estimate["source_chars"], len(source_text))
+        self.assertEqual(estimate["verified_source_files"], 1)
+        self.assertGreater(estimate["estimated_tokens_avoided"], 0)
+        self.assertEqual(estimate["returned_note_chars"], response["content_chars"])
+        self.write(self.source, "changed")
+        stale = m.query("process run", compact=True)
+        self.assertEqual(stale["hits"], [])
+        self.assertEqual(stale["context_estimate"]["estimated_tokens_avoided"], 0)
+
+    def test_context_estimate_deduplicates_shared_source_files(self):
+        self.write(self.source, "class ProcessManager {}\n" * 300)
+        m = self.open()
+        for note_id in ("process-first", "process-second"):
+            receipt = m.capture([self.source], [], 24000)["receipt"]
+            m.remember({"id": note_id, "title": "Process manager", "summary": "Process evidence."}, receipt)
+        result = m.query("process", limit=2, compact=True)
+        self.assertEqual(len(result["hits"]), 2)
+        self.assertEqual(result["context_estimate"]["verified_source_files"], 1)
+        self.assertEqual(result["context_estimate"]["source_chars"], len("class ProcessManager {}\n" * 300))
+
     def test_intent_and_component_ranking_with_branch_changes(self):
         self.write("src/HostController.java", "class HostController { void stopHost() {} }")
         m = self.open()

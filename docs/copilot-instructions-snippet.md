@@ -83,7 +83,12 @@ Never copy .repoecho between repositories/worktrees or commit its contents.
 If the helper fails, report the error briefly and continue from source
 without claiming cache validation succeeded. Do not reset/delete the cache
 or change permissions to hide an error. When useful, end with one short
-line (at most) naming reused/refreshed note IDs or explaining why caching was bypassed.
+line naming reused/refreshed note IDs and, for verified compact hits,
+the script's estimated_tokens_avoided as an approximate potential source-
+context saving. This assumes reading every captured source file instead of
+the compact notes at ~4 characters/token; it is not actual Copilot usage,
+AIC or whole-repository savings. If there is no verified hit, report no
+saving rather than inventing a number. Keep the line short.
 ```
 
 After adding or editing the file, run `/new` in Copilot CLI, then `/instructions` to confirm it is discovered and enabled. Alternatively, exit and run `copilot --continue` from your target repository. Active sessions do not immediately load instruction changes; `/skills reload` is for skills, not this instruction refresh. Saved notes persist across sessions.

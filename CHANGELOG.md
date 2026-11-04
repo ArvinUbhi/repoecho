@@ -2,9 +2,13 @@
 
 RepoEcho uses `MAJOR.MINOR.PATCH` versions. Major changes can break compatibility, minor changes add behaviour, and patches fix issues. `repoecho --version` shows the installed version. Each entry below names the change and links its commit on `main`.
 
+## 1.3.2 — 4 November 2026
+
+- Add a per-query potential context-token estimate for verified compact notes and one-line agent reporting. The figure compares captured source text with compact notes; actual AIC still requires matched Copilot runs. (This release commit.)
+
 ## 1.3.1 — 4 November 2026
 
-- Use `HTTPS_PROXY` inherited from PowerShell, keep TLS certificate verification, accept `--ca-cert` for corporate TLS interception, and explain the browser ZIP fallback. (This release commit.)
+- [Support corporate HTTPS proxy and CA for ZIP updates](https://github.com/ArvinUbhi/repoecho/commit/2d62b9cfe48aec45abbcc3b2182e5a265f074f32): inherit `HTTPS_PROXY` from PowerShell, keep TLS verification, accept `--ca-cert`, and explain the browser ZIP fallback.
 
 ## 1.3.0 — 4 November 2026
 
