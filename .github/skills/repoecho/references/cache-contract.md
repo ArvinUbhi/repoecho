@@ -12,7 +12,7 @@ The program has no provider integration, embeddings, background daemon, API key,
 |---|---|
 | File SHA-256 | Hash of actual UTF-8 source bytes, including whitespace |
 | Scope digest | Hash of sorted relative path + content-hash pairs for matching indexed files |
-| Policy fingerprint | Helper version/code, skill instructions/references, effective config and exclusions |
+| Policy fingerprint | Explicit evidence compatibility version, effective config and exclusions; independent of release/code/documentation changes |
 | `captured_at` | When the evidence receipt was produced |
 | `generated_at` | When Copilot's note passed evidence validation and was saved |
 | `verified_at` | When a retrieved note's evidence passed strict hashing in this invocation |
@@ -24,6 +24,14 @@ Every `query` enumerates eligible paths, incrementally updates the manifest, ran
 Warm manifest scans reuse a hash when size, nanosecond mtime/ctime, inode and device match. A full manifest rehash occurs at least every 24 hours (or `scan --full`). Strict query validation does not trust that shortcut. `plan`/`status` are inexpensive manifests, not authoritative freshness reports. A branch name/commit SHA is not the validity key: dirty, staged and untracked-but-not-ignored files all matter.
 
 No filesystem scan is an atomic snapshot of a changing checkout. Reads verify stat signatures before/after and retry racing reads; failures suppress results. Treat results as point-in-time evidence and avoid modifying a checkout concurrently during learning. Capture receipts prevent an old LLM summary from being stamped with new hashes after a source edit. The engine cannot prove an LLM understood the source, chose every semantic dependency, or noticed changes in external services/packages not represented by captured files. Include lockfiles/contracts/configuration and record uncertainties.
+
+## Updates and compatibility
+
+`VERSION` identifies the installed release. `SCHEMA` identifies the SQLite layout. `CACHE_COMPATIBILITY` identifies evidence semantics and changes only when source/scope interpretation becomes incompatible. Maintainers must explicitly bump it for incompatible changes to hashing, scope matching or evidence eligibility; ordinary bug fixes, retrieval improvements and documentation edits do not require a bump.
+
+Schema-1 notes from releases before 1.3.3 have no compatibility field. Their opaque policy combined code, docs and configuration, so those parts cannot be recovered separately. Under compatibility 1, query checks the original expiry and every source/scope against the current eligible manifest and actual bytes. Only passing notes are adopted into the current policy and revision key, transactionally updating search entries. Adoption preserves note text, capture/generation dates, expiry and branch origins. Matching revisions are deduplicated; another branch's unmatched note remains untouched until its evidence matches. `plan` only marks candidates for query verification and never upgrades them. A future incompatible contract rejects legacy notes as well.
+
+Old in-flight capture receipts require recapture once when moving from before 1.3.3; saved notes do not require relearning. Receipts produced from 1.3.3 onward survive compatible release updates within their normal 24-hour lifetime. Configuration changes still invalidate modern receipts/notes. Cache migration does not renew review TTLs or certify a note without source verification.
 
 ## Discovery and exclusions
 
@@ -49,7 +57,7 @@ Optional root `.repoecho.json`:
 
 Optional root `.repoechoignore`: one additional exclusion glob per line; blank lines and lines starting with `#` are ignored. Glob syntax is case-sensitive, repository-relative, `/` separated: `*` and `?` match within a path segment; `**` matches zero or more segments; `folder/` means `folder/**`. Bare patterns are root-relative; use `**/name` at any depth. These are **not** Git ignore rules: no negation, leading slash, or escaped comments. Git's own ignore rules are honored by Git discovery. Plain-directory mode does not emulate `.gitignore`; use `.repoechoignore`.
 
-Changing configuration or skill policy invalidates existing notes. The engine skips generated `.repoecho` data regardless of ignore configuration. Capture limits and query `--max-chars` bound evidence/note characters, not exact model tokens or total JSON metadata. Whole notes/files are returned or omitted; no silently truncated note is treated as complete. Query `stale` diagnostics are capped at 20, plan notes/build files at 100. Initial scans hash all eligible files; warm scans still enumerate/stat the tree, so scan cost is O(file count). Avoid global scopes for large monorepos.
+Changing effective configuration, exclusions or the evidence compatibility contract invalidates existing notes. Routine release, code and documentation updates do not. The engine skips generated `.repoecho` data regardless of ignore configuration. Capture limits and query `--max-chars` bound evidence/note characters, not exact model tokens or total JSON metadata. Whole notes/files are returned or omitted; no silently truncated note is treated as complete. Query `stale` diagnostics are capped at 20, plan notes/build files at 100. Initial scans hash all eligible files; warm scans still enumerate/stat the tree, so scan cost is O(file count). Avoid global scopes for large monorepos.
 
 ## Recovery and deletion
 

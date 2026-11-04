@@ -2,9 +2,14 @@
 
 RepoEcho uses `MAJOR.MINOR.PATCH` versions. Major changes can break compatibility, minor changes add behaviour, and patches fix issues. `repoecho --version` shows the installed version. Each entry below names the change and links its commit on `main`.
 
+## 1.3.3 — 4 November 2026
+
+- Preserve cache across compatible RepoEcho updates: separate release and evidence compatibility versions, upgrade verified legacy notes without resetting timestamps, retain branch versions and deduplicate matching revisions. Add regression coverage for updates, migration, branch switching and stale/incompatible evidence. (This release commit.)
+
 ## 1.3.2 — 4 November 2026
 
-- Add a per-query potential context-token estimate for verified compact notes and one-line agent reporting. The figure compares captured source text with compact notes; actual AIC still requires matched Copilot runs. (This release commit.)
+- [Report potential per-query source context token savings](https://github.com/ArvinUbhi/repoecho/commit/e8b4e082425af20639a1485b96739b47d734f9ba): add a per-query potential context-token estimate for verified compact notes and one-line agent reporting. The figure compares captured source text with compact notes; actual AIC still requires matched Copilot runs.
+- [Fix Windows newline expectation in context estimate tests](https://github.com/ArvinUbhi/repoecho/commit/38f2e6174982e6d5c69b81075b1e494c8c9e802b): compare source characters using the bytes stored on disk.
 
 ## 1.3.1 — 4 November 2026
 

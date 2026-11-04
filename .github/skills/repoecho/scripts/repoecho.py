@@ -27,7 +27,9 @@ import tempfile
 import time
 import uuid
 
-VERSION = "1.3.2"
+VERSION = "1.3.3"
+# Bump only when evidence semantics become incompatible, never for a release.
+CACHE_COMPATIBILITY = 1
 SCHEMA = "1"
 CACHE = ".repoecho"
 DEFAULTS = {"exclude": [], "max_file_bytes": 1_048_576,
@@ -395,13 +397,8 @@ class Memory:
                                  if x.strip() and not x.lstrip().startswith("#"))
         for pattern in self.excludes:
             validate_pattern(pattern)
-        skill = Path(__file__).resolve().parent.parent
-        policy_files = [Path(__file__).resolve(), skill / "SKILL.md"]
-        policy_files.extend(sorted((skill / "references").glob("*.md")))
-        self.policy = digest({"version": VERSION, "config": self.config,
-                              "exclude": self.excludes,
-                              "skill": [(p.name, hashlib.sha256(p.read_bytes()).hexdigest())
-                                        for p in policy_files if p.exists()]})
+        self.policy = digest({"compatibility": CACHE_COMPATIBILITY,
+                              "config": self.config, "exclude": self.excludes})
         cache = cache_directory(self.root, create=True)
         db_path = cache / "cache.sqlite3"
         for suffix in ("", "-wal", "-shm", "-journal"):
@@ -647,9 +644,19 @@ class Memory:
         return digest([(p, self.strict_hash(p) if strict else entry["hash"])
                        for p, entry in sorted(self.manifest.items()) if pattern_matches(p, pattern)])
 
-    def validity(self, evidence, strict=True):
-        if evidence["policy"] != self.policy:
-            return "skill_or_configuration_changed"
+    def validity(self, evidence, strict=True, allow_legacy=False):
+        legacy = "compatibility" not in evidence
+        if legacy:
+            # Schema-1 saved notes used release/code hashes as policy. Their
+            # evidence format is compatible, but every source/scope must pass
+            # current eligibility and hash checks before adoption. Receipts are
+            # deliberately excluded: an interrupted learning pass must recapture.
+            if not allow_legacy or CACHE_COMPATIBILITY != 1:
+                return "cache_compatibility_changed"
+        elif evidence["compatibility"] != CACHE_COMPATIBILITY:
+            return "cache_compatibility_changed"
+        elif evidence["policy"] != self.policy:
+            return "configuration_changed"
         if evidence.get("expires_epoch", float("inf")) <= time.time():
             return "review_expired"
         for path, sha in evidence["sources"].items():
@@ -660,6 +667,43 @@ class Memory:
             if self.scope_hash(pattern, strict) != sha:
                 return "scope_changed:" + pattern
         return None
+
+    def adopt_legacy_note(self, note):
+        """Upgrade a strictly verified schema-1 note without renewing its dates."""
+        if "compatibility" in note["evidence"]:
+            return note
+        old_payload = packed(note)
+        # The query has already verified evidence. Use a transaction and an
+        # exact payload match so a concurrent learner is never overwritten.
+        with self.db:
+            self.db.execute("BEGIN IMMEDIATE")
+            row = self.db.execute("SELECT id, search FROM notes WHERE payload=?", (old_payload,)).fetchone()
+            if row is None:
+                return note
+            evidence = dict(note["evidence"], policy=self.policy, compatibility=CACHE_COMPATIBILITY)
+            revision = digest({key: evidence[key] for key in ("policy", "sources", "scopes")})
+            upgraded = dict(note, evidence=evidence, revision=revision)
+            storage_id = note["id"] + "@" + revision
+            existing = self.db.execute("SELECT payload, search FROM notes WHERE id=?", (storage_id,)).fetchone()
+            search = row["search"]
+            if existing:
+                saved = json.loads(existing["payload"])
+                origins = [saved["evidence"].get("origin", {}), evidence.get("origin", {})]
+                if saved["generated_at"] >= note["generated_at"] and self.validity(saved["evidence"]) is None:
+                    upgraded, search = saved, existing["search"]
+                branches = {branch for origin in origins for branch in
+                            [origin.get("branch"), *origin.get("branches", [])] if branch}
+                upgraded["evidence"].setdefault("origin", {})["branches"] = sorted(branches)
+            self.db.execute("INSERT OR REPLACE INTO notes VALUES (?,?,?,?)",
+                            (storage_id, packed(upgraded), search, upgraded["generated_at"]))
+            if self.fts:
+                self.db.execute("DELETE FROM search_notes WHERE id=?", (storage_id,))
+                self.db.execute("INSERT INTO search_notes VALUES (?,?)", (storage_id, search))
+            if row["id"] != storage_id:
+                self.db.execute("DELETE FROM notes WHERE id=?", (row["id"],))
+                if self.fts:
+                    self.db.execute("DELETE FROM search_notes WHERE id=?", (row["id"],))
+        return upgraded
 
     def capture(self, paths, scopes, max_chars):
         self.scan()
@@ -680,7 +724,7 @@ class Memory:
             files.append({"path": rel, "sha256": sha, "content": content})
         if sum(len(x["content"]) for x in files) > max_chars:
             raise CacheError("Capture exceeds --max-chars. Select fewer files or raise the explicit budget.")
-        evidence = {"policy": self.policy, "sources": hashes,
+        evidence = {"policy": self.policy, "compatibility": CACHE_COMPATIBILITY, "sources": hashes,
                     "scopes": {p: self.scope_hash(p, True) for p in scopes}, "captured_at": utc(),
                     "origin": {"repository_id": digest(str(self.root)),
                                "branch": self.git_state.get("branch"), "commit": self.git_state.get("head")}}
@@ -781,7 +825,7 @@ class Memory:
         words = list(dict.fromkeys(tokens(query)))[:64]
         terms = [w for w in words if w not in common] or words
         if not terms:
-            return self.db.execute("SELECT payload FROM notes ORDER BY id")
+            return self.db.execute("SELECT payload FROM notes ORDER BY id").fetchall()
         if self.fts:
             expression = " OR ".join('"' + search_stem(w).replace('"', '""') + '"*' for w in terms)
             rows = self.db.execute("SELECT n.payload FROM search_notes s JOIN notes n ON n.id=s.id "
@@ -819,11 +863,12 @@ class Memory:
             if note["id"] in returned_ids:
                 continue
             checked += 1
-            reason = self.validity(note["evidence"])
+            reason = self.validity(note["evidence"], allow_legacy=True)
             if reason:
                 if len(stale) < 20:
                     stale.append({"id": note["id"], "revision": note.get("revision"), "reason": reason})
                 continue
+            note = self.adopt_legacy_note(note)
             result = dict(note)
             result["verified_at"] = utc()
             result["freshness"] = "content_verified"
@@ -880,7 +925,7 @@ class Memory:
         notes = []
         for row in self.db.execute("SELECT payload FROM notes ORDER BY id"):
             note = json.loads(row[0])
-            reason = self.validity(note["evidence"], strict=False)
+            reason = self.validity(note["evidence"], strict=False, allow_legacy=True)
             notes.append({"id": note["id"], "revision": note.get("revision"), "state": "stale" if reason else "candidate_needs_query_verification",
                           "reason": reason})
         return {"scan": self.scan_result, "candidate_files": candidates,

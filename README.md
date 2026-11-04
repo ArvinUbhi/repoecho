@@ -252,7 +252,7 @@ Close Copilot to release the installed skill folder. From a new PowerShell or te
 repoecho update
 ```
 
-The command downloads the latest public GitHub ZIP over HTTPS, extracts it in a temporary folder and runs the installer with `--replace`. It reports the installed and downloaded **MAJOR.MINOR.PATCH** versions (`repoecho --version` shows the installed version). The downloaded ZIP is removed after installation. It uses uv's Python 3.12, not system Python. Your application's `.repoecho` cache stays in that application directory. After a skill version update, notes may need verification or refreshing under the new policy.
+The command downloads the latest public GitHub ZIP over HTTPS, extracts it in a temporary folder and runs the installer with `--replace`. It reports the installed and downloaded **MAJOR.MINOR.PATCH** versions (`repoecho --version` shows the installed version). The downloaded ZIP is removed after installation. It uses uv's Python 3.12, not system Python. Your application's `.repoecho` cache stays in that application directory. Routine RepoEcho updates preserve learned notes across branches. Release numbers, helper code and documentation edits no longer invalidate the cache. On your next query, older notes are automatically upgraded only after their source files and scope hashes match; their original review deadlines stay unchanged. Notes from other branches remain available for verification when you switch back. You do not need to delete the cache or relearn unchanged workflows. Changes to your repository evidence, cache configuration, review expiry or an explicitly incompatible cache format can still require refreshing affected notes.
 
 ### Work proxy and SSL certificates
 

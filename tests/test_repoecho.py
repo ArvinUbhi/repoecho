@@ -226,12 +226,139 @@ class CacheTests(unittest.TestCase):
         self.assertEqual(result["hits"], [])
         self.assertEqual(result["stale"][0]["reason"], "review_expired")
 
+    def make_legacy_notes(self):
+        """Reproduce schema-1 storage before compatibility was explicit."""
+        m = self.memory
+        rows = m.db.execute("SELECT * FROM notes").fetchall()
+        with m.db:
+            for row in rows:
+                note = json.loads(row["payload"])
+                note["evidence"].pop("compatibility", None)
+                note["evidence"]["policy"] = repoecho.digest("old release and skill files")
+                note["revision"] = repoecho.digest({k: note["evidence"][k] for k in ("policy", "sources", "scopes")})
+                storage_id = note["id"] + "@" + note["revision"]
+                m.db.execute("DELETE FROM notes WHERE id=?", (row["id"],))
+                m.db.execute("INSERT INTO notes VALUES (?,?,?,?)",
+                             (storage_id, repoecho.packed(note), row["search"], row["generated_at"]))
+                if m.fts:
+                    m.db.execute("DELETE FROM search_notes WHERE id=?", (row["id"],))
+                    m.db.execute("INSERT INTO search_notes VALUES (?,?)", (storage_id, row["search"]))
+        return [json.loads(r[0]) for r in m.db.execute("SELECT payload FROM notes")]
+
+    def test_release_code_and_docs_changes_preserve_cache_and_receipts(self):
+        m = self.learn()
+        before = m.query("shutdown")["hits"][0]
+        receipt = m.capture([self.source], [], 24000)["receipt"]
+        with tempfile.TemporaryDirectory() as updated:
+            skill = Path(updated)
+            (skill / "scripts").mkdir()
+            (skill / "references").mkdir()
+            script = skill / "scripts/repoecho.py"
+            script.write_text("# Updated helper implementation\n")
+            (skill / "SKILL.md").write_text("Updated instructions")
+            (skill / "references/cache-contract.md").write_text("Updated documentation")
+            with mock.patch.object(repoecho, "VERSION", "9.9.9"), mock.patch.object(repoecho, "__file__", str(script)):
+                m = self.open()
+                after = m.query("shutdown")["hits"][0]
+                self.assertEqual(after["revision"], before["revision"])
+                self.assertEqual(after["evidence"], before["evidence"])
+                self.assertEqual(m.scan()["hashed"], 0)
+                m.remember(self.note("second"), receipt)
+
+    def test_legacy_upgrade_preserves_dates_and_deduplicates(self):
+        self.learn(scopes=["src/**"])
+        old = self.make_legacy_notes()[0]
+        m = self.open()
+        self.assertEqual(m.plan()["notes"][0]["state"], "candidate_needs_query_verification")
+        hit = m.query("shutdown")["hits"][0]
+        self.assertEqual(hit["evidence"]["compatibility"], repoecho.CACHE_COMPATIBILITY)
+        self.assertEqual(hit["generated_at"], old["generated_at"])
+        for key in ("captured_at", "expires_epoch", "expires_at", "origin", "sources", "scopes"):
+            self.assertEqual(hit["evidence"][key], old["evidence"][key])
+        self.assertEqual(m.db.execute("SELECT COUNT(*) FROM notes").fetchone()[0], 1)
+        self.learn(scopes=["src/**"])
+        self.assertEqual(m.db.execute("SELECT COUNT(*) FROM notes").fetchone()[0], 1)
+        self.assertEqual(len(self.open().query("shutdown")["hits"]), 1)
+
+    def test_legacy_duplicate_merges_branch_origins(self):
+        m = self.learn()
+        legacy = self.make_legacy_notes()[0]
+        legacy["evidence"]["origin"]["branch"] = "main"
+        with m.db:
+            m.db.execute("UPDATE notes SET payload=?", (repoecho.packed(legacy),))
+        capture = m.capture([self.source, "pom.xml"], [], 24000)
+        capture["evidence"]["origin"]["branch"] = "feature"
+        with m.db:
+            m.db.execute("UPDATE receipts SET payload=? WHERE id=?",
+                         (repoecho.packed(capture["evidence"]), capture["receipt"]))
+        m.remember(self.note(), capture["receipt"])
+        m.scan()
+        self.assertIsNone(m.validity(legacy["evidence"], allow_legacy=True))
+        m.adopt_legacy_note(legacy)
+        rows = m.db.execute("SELECT payload FROM notes").fetchall()
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(json.loads(rows[0][0])["evidence"]["origin"]["branches"], ["feature", "main"])
+        self.assertEqual(len(m.query("shutdown")["hits"]), 1)
+
+    def test_legacy_changed_scope_is_withheld_until_restored(self):
+        self.learn(scopes=["src/**"])
+        self.make_legacy_notes()
+        self.write("src/Added.java", "class Added {}")
+        m = self.open()
+        self.assertEqual(m.query("shutdown")["hits"], [])
+        stored = json.loads(m.db.execute("SELECT payload FROM notes").fetchone()[0])
+        self.assertNotIn("compatibility", stored["evidence"])
+        (self.root / "src/Added.java").unlink()
+        self.assertEqual(len(m.query("shutdown")["hits"]), 1)
+
+    def test_legacy_excluded_source_is_withheld(self):
+        self.learn()
+        self.make_legacy_notes()
+        self.write(".repoecho.json", json.dumps({"exclude": [self.source]}))
+        result = self.open().query("shutdown")
+        self.assertEqual(result["hits"], [])
+        self.assertIn("source_changed_or_removed", result["stale"][0]["reason"])
+
+    def test_legacy_expiry_is_not_renewed(self):
+        m = self.learn()
+        self.make_legacy_notes()
+        row = json.loads(m.db.execute("SELECT payload FROM notes").fetchone()[0])
+        row["evidence"]["expires_epoch"] = 1
+        with m.db:
+            m.db.execute("UPDATE notes SET payload=?", (repoecho.packed(row),))
+        result = self.open().query("shutdown")
+        self.assertEqual(result["hits"], [])
+        self.assertEqual(result["stale"][0]["reason"], "review_expired")
+
+    def test_incompatible_contract_rejects_notes_and_receipts(self):
+        m = self.learn()
+        receipt = m.capture([self.source], [], 24000)["receipt"]
+        with mock.patch.object(repoecho, "CACHE_COMPATIBILITY", 2):
+            m = self.open()
+            result = m.query("shutdown")
+            self.assertEqual(result["hits"], [])
+            self.assertEqual(result["stale"][0]["reason"], "cache_compatibility_changed")
+            with self.assertRaisesRegex(repoecho.CacheError, "cache_compatibility_changed"):
+                m.remember(self.note(), receipt)
+            self.make_legacy_notes()
+            self.assertEqual(m.query("shutdown")["hits"], [])
+
+    def test_legacy_receipt_requires_recapture(self):
+        m = self.open()
+        captured = m.capture([self.source], [], 24000)
+        evidence = captured["evidence"]
+        evidence.pop("compatibility")
+        with m.db:
+            m.db.execute("UPDATE receipts SET payload=?", (repoecho.packed(evidence),))
+        with self.assertRaisesRegex(repoecho.CacheError, "recapture"):
+            m.remember(self.note(), captured["receipt"])
+
     def test_configuration_change_invalidates(self):
         self.learn()
         self.write(".repoecho.json", '{"note_ttl_days": 14}')
         result = self.open().query("process")
         self.assertEqual(result["hits"], [])
-        self.assertEqual(result["stale"][0]["reason"], "skill_or_configuration_changed")
+        self.assertEqual(result["stale"][0]["reason"], "configuration_changed")
 
     def test_policy_change_invalidates(self):
         m = self.learn()
@@ -492,6 +619,26 @@ class CacheTests(unittest.TestCase):
         self.git("switch", "feature")
         self.assertEqual(m.query("stop running job", limit=1, compact=True)["hits"][0]["summary"], "Feature drains first.")
         self.assertEqual(m.db.execute("SELECT COUNT(*) FROM notes WHERE id LIKE 'workflow-stop@%'").fetchone()[0], 2)
+
+    def test_legacy_branch_versions_survive_upgrade(self):
+        self.git_init()
+        self.git("add", ".")
+        self.git("commit", "-m", "main")
+        self.learn()
+        self.git("switch", "-c", "feature")
+        self.write(self.source, "class ProcessManager { void stop() { /* drain */ } }")
+        self.git("add", self.source)
+        self.git("commit", "-m", "feature")
+        self.learn()
+        self.make_legacy_notes()
+        m = self.open()
+        feature = m.query("shutdown")["hits"][0]["revision"]
+        self.git("switch", "main")
+        main = m.query("shutdown")["hits"][0]["revision"]
+        self.assertNotEqual(main, feature)
+        self.git("switch", "feature")
+        self.assertEqual(m.query("shutdown")["hits"][0]["revision"], feature)
+        self.assertEqual(m.db.execute("SELECT COUNT(*) FROM notes").fetchone()[0], 2)
 
     def test_many_branches_retain_their_same_file_revisions(self):
         self.git_init()
