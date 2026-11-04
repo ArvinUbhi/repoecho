@@ -380,7 +380,7 @@ class CacheTests(unittest.TestCase):
         m.remember({"id": "workflow", "title": "Process run", "summary": "Runs work."}, receipt)
         response = m.query("process run", compact=True)
         estimate = response["context_estimate"]
-        self.assertEqual(estimate["source_chars"], len(source_text))
+        self.assertEqual(estimate["source_chars"], len((self.root / self.source).read_bytes().decode("utf-8")))
         self.assertEqual(estimate["verified_source_files"], 1)
         self.assertGreater(estimate["estimated_tokens_avoided"], 0)
         self.assertEqual(estimate["returned_note_chars"], response["content_chars"])
@@ -398,7 +398,7 @@ class CacheTests(unittest.TestCase):
         result = m.query("process", limit=2, compact=True)
         self.assertEqual(len(result["hits"]), 2)
         self.assertEqual(result["context_estimate"]["verified_source_files"], 1)
-        self.assertEqual(result["context_estimate"]["source_chars"], len("class ProcessManager {}\n" * 300))
+        self.assertEqual(result["context_estimate"]["source_chars"], len((self.root / self.source).read_bytes().decode("utf-8")))
 
     def test_intent_and_component_ranking_with_branch_changes(self):
         self.write("src/HostController.java", "class HostController { void stopHost() {} }")
