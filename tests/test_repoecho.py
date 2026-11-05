@@ -70,6 +70,107 @@ class CacheTests(unittest.TestCase):
         self.git("config", "user.name", "RepoEcho Test")
         self.git("config", "user.email", "repoecho@example.invalid")
 
+    def test_focused_query_skips_unrelated_files_but_preserves_manifest(self):
+        self.write("other/Large.java", "class Large {}")
+        m = self.learn()
+        original = m.read_source
+        def guarded(path):
+            self.assertNotEqual(path, "other/Large.java")
+            return original(path)
+        self.write("other/Large.java", "class Changed {}")
+        with mock.patch.object(m, "read_source", side_effect=guarded):
+            result = m.query("shutdown")
+        self.assertEqual(len(result["hits"]), 1)
+        self.assertEqual(result["scan"]["scope"], "candidate_evidence")
+        self.assertEqual(result["scan"]["paths_considered"], 2)
+        self.assertIsNotNone(m.db.execute("SELECT path FROM files WHERE path='other/Large.java'").fetchone())
+        self.assertGreater(m.scan()["changed"], 0)
+
+    def test_focused_scope_checks_new_members_after_unrelated_query(self):
+        self.learn(scopes=["src/**"])
+        self.write("src/Added.java", "class Added {}")
+        self.assertEqual(self.memory.query("no_such_topic")["hits"], [])
+        result = self.memory.query("shutdown")
+        self.assertEqual(result["hits"], [])
+        self.assertIn("scope_changed", result["stale"][0]["reason"])
+
+    def test_capture_hints_do_not_forge_read_evidence(self):
+        captured = self.open().capture([self.source], [], 24000)
+        self.assertEqual(captured["coverage_hints"]["uncaptured_ancestor_build_files"], ["pom.xml"])
+        self.assertNotIn("pom.xml", captured["evidence"]["sources"])
+        self.assertEqual([item["path"] for item in captured["files"]], [self.source])
+
+    def test_note_limit_preserves_existing_history_and_receipt(self):
+        self.write(".repoecho.json", '{"max_note_revisions": 1}')
+        m = self.learn()
+        captured = m.capture([self.source], [], 24000)
+        with self.assertRaisesRegex(repoecho.CacheError, "limit reached"):
+            m.remember(self.note("another"), captured["receipt"])
+        self.assertEqual(m.storage()["note_revisions"], 1)
+        self.assertIsNotNone(m.db.execute("SELECT id FROM receipts WHERE id=?", (captured["receipt"],)).fetchone())
+        self.assertEqual(m.query("shutdown")["hits"][0]["id"], "process")
+
+    def test_note_limit_reclaims_expired_history_before_rejecting_save(self):
+        self.write(".repoecho.json", '{"max_note_revisions": 1}')
+        m = self.learn()
+        row = m.db.execute("SELECT id,payload FROM notes").fetchone()
+        payload = json.loads(row["payload"])
+        payload["evidence"]["expires_epoch"] = 1
+        with m.db:
+            m.db.execute("UPDATE notes SET payload=? WHERE id=?", (repoecho.packed(payload), row["id"]))
+        receipt = m.capture([self.source], [], 24000)["receipt"]
+        m.remember(self.note("new"), receipt)
+        self.assertEqual(m.storage()["note_revisions"], 1)
+        self.assertEqual(m.query("shutdown")["hits"][0]["id"], "new")
+
+    def test_receipt_limit_bounds_abandoned_learning(self):
+        self.write(".repoecho.json", '{"max_receipts": 1}')
+        m = self.open()
+        first = m.capture([self.source], [], 24000)
+        with self.assertRaisesRegex(repoecho.CacheError, "receipt limit"):
+            m.capture([self.source], [], 24000)
+        m.remember(self.note(), first["receipt"])
+        self.assertIn("receipt", m.capture([self.source], [], 24000))
+
+    def test_sqlite_budget_rolls_back_without_losing_notes(self):
+        self.write(".repoecho.json", '{"max_cache_mb": 1}')
+        m = self.learn()
+        m.db.execute("CREATE TABLE quota_probe (value BLOB)")
+        with self.assertRaises(sqlite3.OperationalError):
+            with m.db:
+                m.db.execute("INSERT INTO quota_probe VALUES (?)", (b"x" * (2 * 1024 * 1024),))
+        self.assertLessEqual(m.storage()["database_allocated_bytes"], 1024 * 1024)
+        self.assertEqual(m.db.execute("PRAGMA integrity_check").fetchone()[0], "ok")
+        self.assertEqual(len(m.query("shutdown")["hits"]), 1)
+
+    def test_prune_removes_only_expired_history_and_compacts(self):
+        m = self.learn()
+        self.learn(note_id="expired")
+        row = m.db.execute("SELECT id,payload FROM notes WHERE id LIKE 'expired@%'").fetchone()
+        payload = json.loads(row["payload"])
+        payload["evidence"]["expires_epoch"] = 1
+        with m.db:
+            m.db.execute("UPDATE notes SET payload=? WHERE id=?", (repoecho.packed(payload), row["id"]))
+        result = m.prune(compact=True)
+        self.assertTrue(result["compacted"])
+        self.assertEqual(result["expired_note_revisions_removed"], 1)
+        self.assertEqual(result["storage"]["note_revisions"], 1)
+        self.assertEqual(m.query("shutdown")["hits"][0]["id"], "process")
+
+    def test_daily_prune_cleans_expired_notes_without_renewing_valid_notes(self):
+        m = self.learn()
+        expiry = m.query("shutdown")["hits"][0]["evidence"]["expires_epoch"]
+        self.learn(note_id="expired")
+        row = m.db.execute("SELECT id,payload FROM notes WHERE id LIKE 'expired@%'").fetchone()
+        payload = json.loads(row["payload"])
+        payload["evidence"]["expires_epoch"] = 1
+        with m.db:
+            m.db.execute("UPDATE notes SET payload=? WHERE id=?", (repoecho.packed(payload), row["id"]))
+            m.set_meta("last_prune", 0)
+        result = m.query("shutdown")
+        self.assertEqual(m.storage()["note_revisions"], 1)
+        self.assertEqual(result["hits"][0]["evidence"]["expires_epoch"], expiry)
+
     def test_cold_then_warm_scan(self):
         m = self.open()
         cold, warm = m.scan(), m.scan()

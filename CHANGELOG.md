@@ -2,13 +2,20 @@
 
 RepoEcho uses `MAJOR.MINOR.PATCH` versions. Major changes can break compatibility, minor changes add behaviour, and patches fix issues. `repoecho --version` shows the installed version. Each entry below names the change and links its commit on `main`.
 
+## 1.5.0 — 5 November 2026
+
+- Bound per-checkout database pages, note revisions and outstanding receipts; retain valid branch history, clean expired entries, and add `storage` / `prune --compact` commands.
+- Restrict query file inspection to candidate source/scope evidence while preserving Git discovery, strict hashes and branch-return reuse.
+- Add ancestor build/lock-file capture hints and doctor warnings for duplicate installations and detected UNC/OneDrive locations.
+- Add quota rollback, cleanup, focused retrieval, scope membership and diagnostics regression tests; update rollout guidance and benchmarks. (This release commit.)
+
 ## 1.4.0 — 4 November 2026
 
-- Harden team rollout and cache isolation: preserve knowledge across operational settings changes; separate scan eligibility from evidence compatibility; normalize existing compatible notes without renewing dates.
+- [Harden team rollout, cache settings, Git isolation and ZIP updates](https://github.com/ArvinUbhi/repoecho/commit/19204017c223cec7a722a10928fdf8de74aa6d05): preserve knowledge across operational settings changes; separate scan eligibility from evidence compatibility; normalize existing compatible notes without renewing dates.
 - Prevent exported Git environment variables from redirecting repository discovery; require Git for detected checkouts instead of bypassing ignore rules.
 - Serialize overlapping installs, stage launchers uniquely, and recheck downgrades inside the installation lock.
 - Add approved-commit ZIP updates, optional SHA-256 verification, HTTPS-only URL validation and bounded archive extraction.
-- Add team rollout/audit guidance, regression tests and a 5,000-file synthetic benchmark. (This release commit.)
+- Add team rollout/audit guidance, regression tests and a 5,000-file synthetic benchmark.
 
 ## 1.3.3 — 4 November 2026
 

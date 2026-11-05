@@ -320,6 +320,20 @@ for this repository and report its note ID and freshness.
 
 From a new terminal, `repoecho status` should also work. If caching is off, that should be reported rather than silently enabled. If no valid note exists, ask Copilot to learn a relevant workflow.
 
+## Keep cache storage under control
+
+Each checkout defaults to a **256 MiB database budget**, **2,000 note revisions** and **128 pending captures**. Valid branch history is preserved: reaching a limit stops a new save with an actionable message. Expired entries are cleaned up automatically when RepoEcho next runs its scheduled scan cleanup.
+
+```powershell
+repoecho storage          # Sizes, counts and limits; no source scan
+repoecho prune            # Remove expired entries only
+repoecho prune --compact  # Reclaim free pages; close other sessions first
+```
+
+The database budget excludes SQLite journal/shared-memory files and temporary compaction space; it is not a hard cap on all disk use. Budgets can be changed in your application's `.repoecho.json`; see the [cache settings](.github/skills/repoecho/references/cache-contract.md#storage-budgets-and-maintenance).
+
+Warm queries enumerate current paths but inspect only candidate notes' files and scope matches. This reduces work on large repositories while preserving source and branch validation. Broad scopes remain more expensive.
+
 ## Roll out to a team
 
 Install once per developer, then use the same command in each application repository. Each clone/worktree keeps its own local `.repoecho` cache; nothing is pooled between developers or repositories. Keep caches on a local disk, outside OneDrive/network shares.
@@ -345,6 +359,7 @@ These options require 1.4.0 or later; use the existing browser ZIP update once t
 - **Git is required / Git rejected this directory?** Restore Git on PATH and resolve Git access first. RepoEcho will not bypass Git ignore rules by silently scanning the filesystem.
 - **Caching unexpectedly off?** Ask Copilot for RepoEcho status or run the direct `status` command above.
 - **Only AGENTS.md appears in `/instructions`?** You can put the section there. If using `.github/copilot-instructions.md`, check the exact filename (not `.md.txt`) and that it is in your application repository, then run `/new` and `/instructions`.
+- **Command and Copilot behave differently?** Run `repoecho doctor` to identify multiple installations, then compare its paths with `/skills info repoecho`.
 - **Copilot cannot see the skill?** Run `/skills info repoecho` after reloading.
 - **Need offline use, team setup or optional gh alias repair?** See the [setup guide](.github/skills/repoecho/references/setup.md).
 

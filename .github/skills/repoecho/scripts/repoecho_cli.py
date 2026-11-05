@@ -8,6 +8,8 @@ import argparse
 import contextlib
 import io
 import json
+import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -29,6 +31,31 @@ def repository_root(explicit=None):
     if not shutil.which("git"):
         repoecho.require_plain_without_git(root)
     return root
+
+
+def installation_diagnostics(root):
+    current = Path(__file__).resolve().parents[1]
+    locations = {current, (Path.home() / ".copilot/skills/repoecho").resolve(),
+                 (root / ".github/skills/repoecho").resolve()}
+    installs = []
+    warnings = []
+    for path in sorted(locations, key=str):
+        engine = path / "scripts/repoecho.py"
+        if engine.is_file():
+            match = re.search(r'^VERSION = "([^"\n]+)"$', engine.read_text(encoding="utf-8"), re.M)
+            installs.append({"path": str(path), "version": match.group(1) if match else "unknown",
+                             "command_implementation": path == current})
+    if len(installs) > 1:
+        warnings.append("Multiple RepoEcho installations exist. Compare /skills info repoecho with the command path; "
+                        "update the intended copy. The personal updater does not update a project copy.")
+    if str(root).startswith("\\\\"):
+        warnings.append("This checkout uses a UNC path. Move the checkout to a local disk before using its SQLite cache.")
+    for key in ("OneDrive", "OneDriveCommercial", "OneDriveConsumer"):
+        folder = os.environ.get(key)
+        if folder and root.is_relative_to(Path(folder).expanduser().resolve()):
+            warnings.append("This checkout is inside a configured OneDrive folder. Use a local, non-synchronised checkout for SQLite.")
+            break
+    return {"installations": installs, "warnings": warnings}
 
 
 def show_controls(state, root):
@@ -74,7 +101,8 @@ def main(argv=None):
             state = repoecho.Controls(root).report()
             result = {"version": repoecho.VERSION, "repository": str(root), "python": sys.version.split()[0],
                       "skill": str(Path(__file__).resolve().parents[1]),
-                      "tools": {name: shutil.which(name) for name in ("uv", "gh", "git", "sh")}, "controls": state}
+                      "tools": {name: shutil.which(name) for name in ("uv", "gh", "git", "sh")}, "controls": state,
+                      **installation_diagnostics(root)}
             if args.json:
                 print(json.dumps(result, indent=2))
             else:
@@ -82,6 +110,8 @@ def main(argv=None):
                 print("Skill: " + result["skill"])
                 for name, path in result["tools"].items():
                     print(name + ": " + (path or "not found"))
+                for warning in result["warnings"]:
+                    print("Warning: " + warning)
                 show_controls(state, root)
                 print("No source scan or knowledge database access performed.")
             return 0

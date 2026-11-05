@@ -18,6 +18,26 @@ spec.loader.exec_module(setup)
 
 
 class FriendlyTests(unittest.TestCase):
+    def test_doctor_reports_multiple_installations_without_creating_cache(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            engine = root / ".github/skills/repoecho/scripts/repoecho.py"
+            engine.parent.mkdir(parents=True)
+            engine.write_text('VERSION = "0.0.1"\n')
+            result = self.call(root, "--json", "doctor")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            data = json.loads(result.stdout)
+            self.assertTrue(any(x["version"] == "0.0.1" for x in data["installations"]))
+            self.assertTrue(any("Multiple" in x for x in data["warnings"]))
+            self.assertFalse((root / ".repoecho").exists())
+
+    def test_storage_and_prune_commands_do_not_scan_sources(self):
+        with tempfile.TemporaryDirectory() as temp:
+            for command in ("storage", "prune"):
+                result = self.call(temp, command)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertNotIn("scan", json.loads(result.stdout))
+
     def call(self, cwd, *args, uv=False):
         prefix = [shutil.which("uv"), "run", "--offline", "--no-project", "--no-config", "--python", sys.executable, "--script"] if uv else [sys.executable]
         return subprocess.run([*prefix, str(CLI), *map(str, args)], cwd=cwd, capture_output=True, text=True)

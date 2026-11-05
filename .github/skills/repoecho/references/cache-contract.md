@@ -19,9 +19,9 @@ The program has no provider integration, embeddings, background daemon, API key,
 | `expires_at` | Review deadline; default 30 days, even if hashes match |
 | File `checked_at` | Last manifest hash check, not last stat-only inspection |
 
-Every `query` enumerates eligible paths, incrementally updates the manifest, ranks notes, and strictly hashes the candidate notes' sources and scopes. Shared evidence is hashed once per query. Changed/deleted sources, scope additions/removals/edits, incompatible evidence contracts, and expired review times suppress the body. Only ID and reason are returned for stale notes. Timestamps never override a content mismatch.
+Every `query` ranks notes, enumerates current repository paths, and limits file stat/hash work to candidate sources and their scope matches. It updates only that part of the manifest and strictly hashes candidate evidence. It still checks Git branch/status/diff and newly added or removed scope members. Unrelated manifest entries remain available for subsequent full scans; a partial query never advances the full-scan verification clock. Diagnostic query `scan.scope` is `candidate_evidence`, and its counts describe that subset. `paths_discovered` reports enumeration size; `paths_considered` reports the focused subset. Shared evidence is hashed once per query. Changed/deleted sources, scope additions/removals/edits, incompatible evidence contracts, and expired review times suppress the body. Only ID and reason are returned for stale notes. Timestamps never override a content mismatch.
 
-Warm manifest scans reuse a hash when size, nanosecond mtime/ctime, inode and device match. A full manifest rehash occurs at least every 24 hours (or `scan --full`). Strict query validation does not trust that shortcut. `plan`/`status` are inexpensive manifests, not authoritative freshness reports. A branch name/commit SHA is not the validity key: dirty, staged and untracked-but-not-ignored files all matter.
+Warm manifest scans reuse a hash when size, nanosecond mtime/ctime, inode and device match. Repository scans (`scan`, `plan`, capture and remember) perform a full manifest rehash when the last full verification is older than 24 hours, or on `scan --full`. Queries always strictly validate candidate evidence but do not certify unrelated files. Strict query validation does not trust that shortcut. `plan`/`status` are inexpensive manifests, not authoritative freshness reports. A branch name/commit SHA is not the validity key: dirty, staged and untracked-but-not-ignored files all matter.
 
 No filesystem scan is an atomic snapshot of a changing checkout. Reads verify stat signatures before/after and retry racing reads; failures suppress results. Treat results as point-in-time evidence and avoid modifying a checkout concurrently during learning. Capture receipts prevent an old LLM summary from being stamped with new hashes after a source edit. The engine cannot prove an LLM understood the source, chose every semantic dependency, or noticed changes in external services/packages not represented by captured files. Include lockfiles/contracts/configuration and record uncertainties.
 
@@ -51,14 +51,25 @@ Optional root `.repoecho.json`:
   "max_file_bytes": 1048576,
   "note_ttl_days": 30,
   "full_verify_hours": 24,
-  "max_note_versions": 8
+  "max_note_versions": 8,
+  "max_cache_mb": 256,
+  "max_note_revisions": 2000,
+  "max_receipts": 128
 }
 ```
 
 Optional root `.repoechoignore`: one additional exclusion glob per line; blank lines and lines starting with `#` are ignored. Glob syntax is case-sensitive, repository-relative, `/` separated: `*` and `?` match within a path segment; `**` matches zero or more segments; `folder/` means `folder/**`. Bare patterns are root-relative; use `**/name` at any depth. These are **not** Git ignore rules: no negation, leading slash, or escaped comments. Git's own ignore rules are honored by Git discovery. Plain-directory mode does not emulate `.gitignore`; use `.repoechoignore`.
 
-Changing the evidence compatibility contract invalidates existing notes. Changes to exclusions or size limits withhold affected evidence; scan frequency, retention and future-note lifetime settings do not invalidate stored knowledge. Routine release, code and documentation updates do not. The engine skips generated `.repoecho` data regardless of ignore configuration. Capture limits and query `--max-chars` bound evidence/note characters, not exact model tokens or total JSON metadata. Whole notes/files are returned or omitted; no silently truncated note is treated as complete. Query `stale` diagnostics are capped at 20, plan notes/build files at 100. Initial scans hash all eligible files; warm scans still enumerate/stat the tree, so scan cost is O(file count). Avoid global scopes for large monorepos.
+Changing the evidence compatibility contract invalidates existing notes. Changes to exclusions or size limits withhold affected evidence; scan frequency, retention and future-note lifetime settings do not invalidate stored knowledge. Routine release, code and documentation updates do not. The engine skips generated `.repoecho` data regardless of ignore configuration. Capture limits and query `--max-chars` bound evidence/note characters, not exact model tokens or total JSON metadata. Whole notes/files are returned or omitted; no silently truncated note is treated as complete. Query `stale` diagnostics are capped at 20, plan notes/build files at 100. Initial full scans hash all eligible files. Queries still enumerate repository paths and read manifest metadata, but stat/hash only candidate evidence. Enumeration remains O(file count); broad scopes can still cover the entire tree. Avoid global scopes for large monorepos.
 
 ## Recovery and deletion
 
 `forget ID` removes a note from the current cache and search index, not forensic remnants in SQLite/WAL/backups. Back up and delete the generated cache to rebuild after corruption, an incompatible schema, or moving the checkout. Do not edit tables manually to bypass failed validation. SQLite errors produce a nonzero exit and no cached answer. A missing cache can always be rebuilt from source and new Copilot notes.
+
+## Storage budgets and maintenance
+
+From 1.5.0, each checkout defaults to a 256 MiB SQLite main-database page limit, 2,000 stored note revisions (including protected branch revisions), and 128 outstanding capture receipts. The page limit covers manifest, notes, receipts and search index. SQLite full errors roll back the operation. A revision/receipt limit rejects growth rather than silently evicting valid branch knowledge; reads remain subject to normal validation. Changing these budgets does not invalidate notes.
+
+`storage` reports allocated/free database pages, limits and actual database/WAL/SHM file sizes without scanning source. The page limit is not a whole-directory or machine-wide disk quota: WAL/SHM, transactions and compaction need extra space. WAL checkpoints are requested every 256 pages, with a 4 MiB retained-journal target; active readers can prevent truncation. If an existing database exceeds a newly lowered budget, SQLite cannot lower its page ceiling below its current size. `storage.over_budget` and the effective limit make this explicit. Use prune/compaction or a suitable budget; never silently erase valid notes.
+
+On the next scan after 24 hours, expired note revisions are removed automatically with their search entries. Expired receipts are removed on every scan. `prune` performs expired-only cleanup immediately. `prune --compact` also runs VACUUM and requests a truncating checkpoint; use an idle cache with sufficient free disk. Compaction may fail or report a busy checkpoint when other sessions are active. It never selects valid notes for removal. `forget ID` is an explicit deletion of every retained revision of that workflow.

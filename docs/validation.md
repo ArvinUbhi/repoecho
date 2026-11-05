@@ -1,6 +1,6 @@
 # Validation
 
-Updated on 4 November 2026. The 1.4.0 suite ran 104 tests locally on Linux with Python 3.12: 103 passed and one prerequisite-dependent integration test was skipped; this is not a claim of a live GitHub Copilot CLI run. Copilot CLI was not installed in the build environment. Real gh 2.103.3 + uv 0.13.4 integration was exercised in isolated temporary home/config directories, including installation, alias updates, paths with apostrophes/spaces, argument forwarding and the installed benchmark. Format, installation locations and slash commands were checked against GitHub's official documentation linked in the README.
+Updated on 5 November 2026. The 1.5.0 suite ran 115 tests locally on Linux with Python 3.12: 114 passed and one prerequisite-dependent integration test was skipped; this is not a claim of a live GitHub Copilot CLI run. Copilot CLI was not installed in the build environment. Real gh 2.103.3 + uv 0.13.4 integration was exercised in isolated temporary home/config directories, including installation, alias updates, paths with apostrophes/spaces, argument forwarding and the installed benchmark. Format, installation locations and slash commands were checked against GitHub's official documentation linked in the README.
 
 ## Behavioral checks
 
@@ -94,3 +94,9 @@ New regression cases cover exported Git location overrides, missing-Git refusal 
 A local synthetic Git benchmark with 5,000 Java files, 30 notes and five retrieval runs measured: cold CLI scan 1,046 ms; warm query median 363 ms and sample p95 408 ms; zero manifest files rehashed on the warm scan; three evidence files strictly verified; matching branch revision reused on return. Compact output was 927 characters versus 2,972 for diagnostic output (68.8% smaller). Synthetic note setup took 17.1 seconds. These are helper timings on this Linux environment, not Copilot latency/AIC or corporate Windows measurements. Run `repoecho benchmark --files 5000 --notes 30 --runs 5` locally to repeat.
 
 See [team rollout](team-rollout.md) for acceptance checks and limitations. No live 100-developer deployment or corporate proxy/Copilot pilot has been performed here.
+
+## Remaining audit fixes (1.5.0)
+
+Regression tests verify candidate-only file inspection without deleting unrelated manifest entries, new scope members after unrelated queries, source-free storage/prune commands, expired-only compaction and daily cleanup, revision/receipt quotas, SQLite full rollback with an intact earlier note, dependency hints without fabricated evidence, and duplicate-install diagnostics without creating a cache. Existing branch, scope, upgrade and isolation cases remain in the suite.
+
+The same 5,000-file / 30-note / five-run synthetic Git scenario measured a 146.25 ms warm query median and 161.94 ms sample p95, versus the previous recorded 363.31 ms median. Warm validation still verified three evidence files, with zero manifest rehashes; the original branch revision was reused. Cold scan was 1,052 ms and synthetic learning setup 18.1 seconds. Compact output remained 927 characters. These separate local runs demonstrate reduced helper work, not an AIC claim or a controlled cross-platform performance guarantee.
