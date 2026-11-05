@@ -2,12 +2,16 @@
 
 RepoEcho uses `MAJOR.MINOR.PATCH` versions. Major changes can break compatibility, minor changes add behaviour, and patches fix issues. `repoecho --version` shows the installed version. Each entry below names the change and links its commit on `main`.
 
+## 1.5.1 — 5 November 2026
+
+- Fix the Windows lock-initialisation race exposed by concurrent installer CI: acquire the byte-range lock without a pre-lock sentinel write. Add an empty-file concurrent-writer regression test. (This release commit.)
+
 ## 1.5.0 — 5 November 2026
 
-- Bound per-checkout database pages, note revisions and outstanding receipts; retain valid branch history, clean expired entries, and add `storage` / `prune --compact` commands.
+- [Bound cache growth and focus retrieval on verified candidate evidence](https://github.com/ArvinUbhi/repoecho/commit/94d9ecf80b2185aea7772a92c35c2b1fcc810a26): bound per-checkout database pages, note revisions and outstanding receipts; retain valid branch history, clean expired entries, and add `storage` / `prune --compact` commands.
 - Restrict query file inspection to candidate source/scope evidence while preserving Git discovery, strict hashes and branch-return reuse.
 - Add ancestor build/lock-file capture hints and doctor warnings for duplicate installations and detected UNC/OneDrive locations.
-- Add quota rollback, cleanup, focused retrieval, scope membership and diagnostics regression tests; update rollout guidance and benchmarks. (This release commit.)
+- Add quota rollback, cleanup, focused retrieval, scope membership and diagnostics regression tests; update rollout guidance and benchmarks.
 
 ## 1.4.0 — 4 November 2026
 

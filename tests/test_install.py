@@ -98,8 +98,8 @@ class InstallTests(unittest.TestCase):
                                     capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
             installed = home / ".copilot/skills/repoecho/scripts/repoecho.py"
-            self.assertIn('VERSION = "1.5.0"', installed.read_text())
-            installed.write_text(installed.read_text().replace('VERSION = "1.5.0"', 'VERSION = "9.0.0"'))
+            self.assertIn('VERSION = "1.5.1"', installed.read_text())
+            installed.write_text(installed.read_text().replace('VERSION = "1.5.1"', 'VERSION = "9.0.0"'))
             result = subprocess.run([sys.executable, str(updater), "--zip", str(archive), "--home", str(home)],
                                     capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0)
@@ -114,7 +114,7 @@ class InstallTests(unittest.TestCase):
         stream = io.BytesIO()
         with zipfile.ZipFile(stream, "w") as bundle:
             bundle.writestr("repoecho-main/tools/install.py", "# placeholder")
-            bundle.writestr("repoecho-main/.github/skills/repoecho/scripts/repoecho.py", 'VERSION = "1.5.0"\n')
+            bundle.writestr("repoecho-main/.github/skills/repoecho/scripts/repoecho.py", 'VERSION = "1.5.1"\n')
         with tempfile.TemporaryDirectory() as home, \
              mock.patch.dict(os.environ, {"HTTPS_PROXY": "http://user:secret@proxy.example:8080"}), \
              mock.patch.object(updater.urllib.request, "urlopen", return_value=io.BytesIO(stream.getvalue())) as download, \
@@ -146,7 +146,7 @@ class InstallTests(unittest.TestCase):
             cli = Path(home) / ".copilot/skills/repoecho/scripts/repoecho_cli.py"
             result = subprocess.run([sys.executable, str(cli), "--version"], capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertEqual(result.stdout.strip(), "1.5.0")
+            self.assertEqual(result.stdout.strip(), "1.5.1")
             launcher = Path(home) / ".local/bin" / ("repoecho.cmd" if os.name == "nt" else "repoecho")
             self.assertIn("RepoEcho CLI launcher", launcher.read_text())
 
@@ -154,7 +154,7 @@ class InstallTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as home:
             self.assertEqual(self.install("--home", home).returncode, 0)
             engine = Path(home) / ".copilot/skills/repoecho/scripts/repoecho.py"
-            engine.write_text(engine.read_text().replace('VERSION = "1.5.0"', 'VERSION = "9.0.0"'))
+            engine.write_text(engine.read_text().replace('VERSION = "1.5.1"', 'VERSION = "9.0.0"'))
             result = self.install("--home", home, "--replace")
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("newer", result.stderr)
@@ -176,7 +176,7 @@ class InstallTests(unittest.TestCase):
             archive = Path(temp) / "source.zip"
             with zipfile.ZipFile(archive, "w") as bundle:
                 bundle.writestr("repoecho-main/tools/install.py", "# fixture")
-                bundle.writestr("repoecho-main/.github/skills/repoecho/scripts/repoecho.py", 'VERSION = "1.5.0"\n')
+                bundle.writestr("repoecho-main/.github/skills/repoecho/scripts/repoecho.py", 'VERSION = "1.5.1"\n')
             checksum = hashlib.sha256(archive.read_bytes()).hexdigest()
             with mock.patch.object(updater.subprocess, "run") as install:
                 with self.assertRaisesRegex(ValueError, "SHA-256"):

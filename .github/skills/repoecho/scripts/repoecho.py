@@ -27,7 +27,7 @@ import tempfile
 import time
 import uuid
 
-VERSION = "1.5.0"
+VERSION = "1.5.1"
 # Bump only when evidence semantics become incompatible, never for a release.
 CACHE_COMPATIBILITY = 1
 SCHEMA = "1"
@@ -164,9 +164,8 @@ def control_lock(cache, filename="control.lock", purpose="controls"):
         raise CacheError("Refusing a symlinked control lock.")
     flags = os.O_RDWR | os.O_CREAT | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_BINARY", 0)
     with os.fdopen(os.open(str(path), flags, 0o600), "r+b") as handle:
-        if os.fstat(handle.fileno()).st_size == 0:
-            handle.write(b"0")
-            handle.flush()
+        # Windows can lock a byte beyond EOF. Never initialise the lock file:
+        # another process may already own that byte when a buffered write flushes.
         deadline = time.monotonic() + 5
         if os.name == "nt":
             import msvcrt

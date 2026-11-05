@@ -171,6 +171,21 @@ class CacheTests(unittest.TestCase):
         self.assertEqual(m.storage()["note_revisions"], 1)
         self.assertEqual(result["hits"][0]["evidence"]["expires_epoch"], expiry)
 
+    def test_empty_lock_file_serializes_writers_without_initialization(self):
+        lock_dir = self.root / "locks"
+        lock_dir.mkdir()
+        counter = self.root / "counter.txt"
+        counter.write_text("0")
+        def increment(_):
+            for _ in range(5):
+                with repoecho.control_lock(lock_dir):
+                    value = int(counter.read_text())
+                    counter.write_text(str(value + 1))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+            list(pool.map(increment, range(4)))
+        self.assertEqual(counter.read_text(), "20")
+        self.assertEqual((lock_dir / "control.lock").stat().st_size, 0)
+
     def test_cold_then_warm_scan(self):
         m = self.open()
         cold, warm = m.scan(), m.scan()
