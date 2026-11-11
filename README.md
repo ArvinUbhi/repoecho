@@ -12,9 +12,9 @@ You need **GitHub Copilot CLI** and [uv](https://docs.astral.sh/uv/getting-start
 
 ### npm installation (release 1.6.0)
 
-Requires Node.js 22+ and npm in addition to the prerequisites above. The first npm publication is pending maintainer authentication; until then use the ZIP option below or the tested tarball from GitHub Actions.
+Requires Node.js 22+ and npm in addition to the prerequisites above. npm accepted version 1.6.0 for public publication on 11 November 2026. Initial registry processing may delay availability; if npm returns E404, use the ZIP option below or the tested tarball from GitHub Actions and retry later.
 
-Once published, install your team's approved version:
+Install your team's approved version:
 
 ```powershell
 npm install -g repoecho@1.6.0 --ignore-scripts

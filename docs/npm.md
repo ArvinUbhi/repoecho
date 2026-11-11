@@ -1,6 +1,6 @@
 # Install RepoEcho through npm
 
-The first public npm publication requires maintainer authentication. The commands below apply after publication; before then, download the `npm-package` artifact from a successful GitHub Actions Tests run and install its `.tgz` file.
+npm accepted 1.6.0 for public publication on 11 November 2026. During initial registry processing, installation may return E404. Retry later or download the `npm-package` artifact from a successful GitHub Actions Tests run and install its `.tgz` file.
 
 ## Standard setup
 

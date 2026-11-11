@@ -1,6 +1,6 @@
 # Publish a release
 
-The repository is MIT licensed. Public npm publication requires an authorised npm account; GitHub access alone cannot publish to npm. The initial 1.6.0 package is prepared but not published until that authentication step is completed.
+The repository is MIT licensed. Public npm publication requires an authorised npm account; GitHub access alone cannot publish to npm. The initial 1.6.0 publish command succeeded on 11 November 2026 after browser 2FA approval. npm reported that registry processing may take a few minutes. Trusted publishing still needs the package settings configuration below.
 
 ## First publication
 
