@@ -1,0 +1,8 @@
+{
+  "measurement_harness_commit": "a3455bf2d6c7ea1d85f89c0759ee3c3f5e09f513",
+  "rendering_harness_commit": "ece528fda60e59a5236cc6d8f74072aa7c621f33",
+  "engine_commit": "cfeb48008c78e42190ae31e6fe1c971b6a28ae17",
+  "comparison": "Same 1.6.0 engine for candidate and baseline; local scale validation, not a speedup claim.",
+  "runs": 3,
+  "trials": 1
+}

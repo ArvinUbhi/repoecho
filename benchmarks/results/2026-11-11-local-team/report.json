@@ -1,0 +1,5027 @@
+{
+  "schema": 1,
+  "created_at": "2026-11-11T23:00:14.437981+00:00",
+  "environment": {
+    "system": "Linux",
+    "machine": "x86_64",
+    "python": "3.12.14",
+    "cpu_count": 9,
+    "git": "git version 2.52.0"
+  },
+  "profile": "team",
+  "thresholds": {
+    "percent": 25,
+    "ms": 10
+  },
+  "engines": {
+    "candidate": {
+      "sha256": "fd5771d769e974fcb8696bf905827736de3dbcfa23edb51d9b5f34979d603318"
+    },
+    "baseline": {
+      "sha256": "fd5771d769e974fcb8696bf905827736de3dbcfa23edb51d9b5f34979d603318"
+    }
+  },
+  "results": [
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "runs": 3,
+      "source_bytes": 3227640,
+      "learning_setup_ms": 6035.696006999999,
+      "storage_before": {
+        "database_allocated_bytes": 335872,
+        "database_free_bytes": 0,
+        "database_budget_bytes": 268435456,
+        "effective_database_limit_bytes": 268435456,
+        "over_budget": false,
+        "files_on_disk": {
+          "cache.sqlite3": 335872,
+          "cache.sqlite3-wal": 8272,
+          "cache.sqlite3-shm": 32768
+        },
+        "total_database_files_bytes": 376912,
+        "note_revisions": 20,
+        "note_revision_limit": 2000,
+        "receipts": 0,
+        "receipt_limit": 128,
+        "scope": "Per checkout SQLite main database limit; WAL/SHM and compaction need extra space. An existing larger database cannot shrink until prune --compact.",
+        "controls": {
+          "skill": "on",
+          "cache": "on",
+          "current_branch": "main",
+          "branch_kind": "named",
+          "branch": "on",
+          "branch_rule": "default",
+          "branch_default": "on",
+          "branch_overrides": {},
+          "effective_enabled": true,
+          "bypass_reasons": [],
+          "updated_at": null
+        }
+      },
+      "storage_after": {
+        "database_allocated_bytes": 339968,
+        "database_free_bytes": 0,
+        "database_budget_bytes": 268435456,
+        "effective_database_limit_bytes": 268435456,
+        "over_budget": false,
+        "files_on_disk": {
+          "cache.sqlite3": 339968,
+          "cache.sqlite3-wal": 8272,
+          "cache.sqlite3-shm": 32768
+        },
+        "total_database_files_bytes": 381008,
+        "note_revisions": 22,
+        "note_revision_limit": 2000,
+        "receipts": 0,
+        "receipt_limit": 128,
+        "scope": "Per checkout SQLite main database limit; WAL/SHM and compaction need extra space. An existing larger database cannot shrink until prune --compact.",
+        "controls": {
+          "skill": "on",
+          "cache": "on",
+          "current_branch": "main",
+          "branch_kind": "named",
+          "branch": "on",
+          "branch_rule": "default",
+          "branch_default": "on",
+          "branch_overrides": {},
+          "effective_enabled": true,
+          "bypass_reasons": [],
+          "updated_at": "2026-11-11T23:00:27+00:00"
+        }
+      },
+      "context_estimate": {
+        "estimated_note_tokens": 64,
+        "estimated_reduction_percent": 97.4,
+        "estimated_source_tokens": 2420,
+        "estimated_tokens_avoided": 2356,
+        "method": "Hypothetical full captured-source text versus compact note payload, ~4 chars/token. Not actual Copilot tokens, AIC, or whole-repository savings.",
+        "returned_note_chars": 256,
+        "source_chars": 9677,
+        "verified_source_files": 3
+      },
+      "checks_passed": [
+        "cold_scan",
+        "warm_hit",
+        "compact_hit",
+        "concurrent_readers_4",
+        "query_miss",
+        "budget_omission",
+        "warm_scan",
+        "full_scan",
+        "mode_off",
+        "cache_off",
+        "branch_off",
+        "repository_isolation",
+        "unrelated_edit",
+        "dirty_evidence",
+        "staged_evidence",
+        "renamed_evidence",
+        "deleted_evidence",
+        "restored_evidence",
+        "scope_addition",
+        "unchanged_branch",
+        "changed_branch",
+        "branch_return",
+        "feature_return",
+        "worktree_isolation"
+      ],
+      "raw": {
+        "cold_scan": {
+          "latency_ms": [
+            372.631283
+          ],
+          "response_bytes": [
+            1228
+          ]
+        },
+        "warm_hit": {
+          "latency_ms": [
+            163.358915,
+            193.354506,
+            189.247513
+          ],
+          "response_bytes": [
+            2959,
+            2959,
+            2958
+          ]
+        },
+        "compact_hit": {
+          "latency_ms": [
+            157.619292,
+            163.816151,
+            178.023237
+          ],
+          "response_bytes": [
+            825,
+            825,
+            825
+          ]
+        },
+        "concurrent_readers_4": {
+          "latency_ms": [
+            180.11836,
+            190.17192,
+            171.08547,
+            187.960677,
+            180.350908,
+            203.609673,
+            177.720405,
+            180.187712,
+            179.378443,
+            271.761855,
+            221.059163,
+            169.430333
+          ],
+          "response_bytes": [
+            2959,
+            2959,
+            2959,
+            2959,
+            2958,
+            2959,
+            2959,
+            2959,
+            2959,
+            2959,
+            2959,
+            2958
+          ]
+        },
+        "query_miss": {
+          "latency_ms": [
+            213.117078,
+            204.116733,
+            189.570309
+          ],
+          "response_bytes": [
+            1605,
+            1605,
+            1604
+          ]
+        },
+        "budget_omission": {
+          "latency_ms": [
+            214.872799,
+            162.101062,
+            159.301323
+          ],
+          "response_bytes": [
+            1605,
+            1604,
+            1605
+          ]
+        },
+        "warm_scan": {
+          "latency_ms": [
+            273.293111,
+            308.637608,
+            260.563644
+          ],
+          "response_bytes": [
+            1269,
+            1269,
+            1269
+          ]
+        },
+        "full_scan": {
+          "latency_ms": [
+            446.574443,
+            439.839128,
+            446.288543
+          ],
+          "response_bytes": [
+            1268,
+            1267,
+            1268
+          ]
+        },
+        "mode_off": {
+          "latency_ms": [
+            102.798443,
+            102.543716,
+            87.376148
+          ],
+          "response_bytes": [
+            488,
+            488,
+            488
+          ]
+        },
+        "cache_off": {
+          "latency_ms": [
+            73.899775,
+            147.293676,
+            108.688145
+          ],
+          "response_bytes": [
+            488,
+            488,
+            488
+          ]
+        },
+        "branch_off": {
+          "latency_ms": [
+            80.166893,
+            74.267306,
+            80.261603
+          ],
+          "response_bytes": [
+            515,
+            515,
+            515
+          ]
+        },
+        "repository_isolation": {
+          "latency_ms": [
+            105.529464,
+            110.795677,
+            95.199147
+          ],
+          "response_bytes": [
+            1066,
+            1065,
+            1066
+          ]
+        },
+        "unrelated_edit": {
+          "latency_ms": [
+            142.958053,
+            199.686431,
+            132.6191
+          ],
+          "response_bytes": [
+            3123,
+            3123,
+            3122
+          ]
+        },
+        "dirty_evidence": {
+          "latency_ms": [
+            155.32619,
+            120.198537,
+            149.205042
+          ],
+          "response_bytes": [
+            1965,
+            1965,
+            1965
+          ]
+        },
+        "staged_evidence": {
+          "latency_ms": [
+            115.395549,
+            182.782427,
+            153.215369
+          ],
+          "response_bytes": [
+            1965,
+            1965,
+            1965
+          ]
+        },
+        "renamed_evidence": {
+          "latency_ms": [
+            141.97965,
+            127.640936,
+            121.715209
+          ],
+          "response_bytes": [
+            2117,
+            2117,
+            2117
+          ]
+        },
+        "deleted_evidence": {
+          "latency_ms": [
+            110.323378,
+            120.099055,
+            108.45393
+          ],
+          "response_bytes": [
+            1988,
+            1989,
+            1989
+          ]
+        },
+        "restored_evidence": {
+          "latency_ms": [
+            116.166784,
+            124.903311,
+            117.694552
+          ],
+          "response_bytes": [
+            2982,
+            2982,
+            2982
+          ]
+        },
+        "scope_addition": {
+          "latency_ms": [
+            146.630296,
+            160.707474,
+            187.959223
+          ],
+          "response_bytes": [
+            1922,
+            1923,
+            1923
+          ]
+        },
+        "unchanged_branch": {
+          "latency_ms": [
+            99.78567,
+            118.269747,
+            119.539227
+          ],
+          "response_bytes": [
+            2987,
+            2991,
+            2991
+          ]
+        },
+        "changed_branch": {
+          "latency_ms": [
+            107.326909,
+            137.674075,
+            115.66968
+          ],
+          "response_bytes": [
+            1873,
+            1831,
+            1830
+          ]
+        },
+        "branch_return": {
+          "latency_ms": [
+            131.016616,
+            107.190285,
+            97.54435
+          ],
+          "response_bytes": [
+            3027,
+            2982,
+            2982
+          ]
+        },
+        "feature_return": {
+          "latency_ms": [
+            106.572475,
+            104.146802,
+            108.695017
+          ],
+          "response_bytes": [
+            3025,
+            2986,
+            2986
+          ]
+        },
+        "worktree_isolation": {
+          "latency_ms": [
+            142.787601,
+            142.456822,
+            147.884962
+          ],
+          "response_bytes": [
+            1561,
+            1601,
+            1601
+          ]
+        }
+      },
+      "metrics": {
+        "cold_scan": {
+          "samples": 1,
+          "median_ms": 372.631283,
+          "p95_ms": 372.631283,
+          "min_ms": 372.631283,
+          "max_ms": 372.631283
+        },
+        "warm_hit": {
+          "samples": 3,
+          "median_ms": 189.247513,
+          "p95_ms": 193.354506,
+          "min_ms": 163.358915,
+          "max_ms": 193.354506
+        },
+        "compact_hit": {
+          "samples": 3,
+          "median_ms": 163.816151,
+          "p95_ms": 178.023237,
+          "min_ms": 157.619292,
+          "max_ms": 178.023237
+        },
+        "concurrent_readers_4": {
+          "samples": 12,
+          "median_ms": 180.26931000000002,
+          "p95_ms": 271.761855,
+          "min_ms": 169.430333,
+          "max_ms": 271.761855
+        },
+        "query_miss": {
+          "samples": 3,
+          "median_ms": 204.116733,
+          "p95_ms": 213.117078,
+          "min_ms": 189.570309,
+          "max_ms": 213.117078
+        },
+        "budget_omission": {
+          "samples": 3,
+          "median_ms": 162.101062,
+          "p95_ms": 214.872799,
+          "min_ms": 159.301323,
+          "max_ms": 214.872799
+        },
+        "warm_scan": {
+          "samples": 3,
+          "median_ms": 273.293111,
+          "p95_ms": 308.637608,
+          "min_ms": 260.563644,
+          "max_ms": 308.637608
+        },
+        "full_scan": {
+          "samples": 3,
+          "median_ms": 446.288543,
+          "p95_ms": 446.574443,
+          "min_ms": 439.839128,
+          "max_ms": 446.574443
+        },
+        "mode_off": {
+          "samples": 3,
+          "median_ms": 102.543716,
+          "p95_ms": 102.798443,
+          "min_ms": 87.376148,
+          "max_ms": 102.798443
+        },
+        "cache_off": {
+          "samples": 3,
+          "median_ms": 108.688145,
+          "p95_ms": 147.293676,
+          "min_ms": 73.899775,
+          "max_ms": 147.293676
+        },
+        "branch_off": {
+          "samples": 3,
+          "median_ms": 80.166893,
+          "p95_ms": 80.261603,
+          "min_ms": 74.267306,
+          "max_ms": 80.261603
+        },
+        "repository_isolation": {
+          "samples": 3,
+          "median_ms": 105.529464,
+          "p95_ms": 110.795677,
+          "min_ms": 95.199147,
+          "max_ms": 110.795677
+        },
+        "unrelated_edit": {
+          "samples": 3,
+          "median_ms": 142.958053,
+          "p95_ms": 199.686431,
+          "min_ms": 132.6191,
+          "max_ms": 199.686431
+        },
+        "dirty_evidence": {
+          "samples": 3,
+          "median_ms": 149.205042,
+          "p95_ms": 155.32619,
+          "min_ms": 120.198537,
+          "max_ms": 155.32619
+        },
+        "staged_evidence": {
+          "samples": 3,
+          "median_ms": 153.215369,
+          "p95_ms": 182.782427,
+          "min_ms": 115.395549,
+          "max_ms": 182.782427
+        },
+        "renamed_evidence": {
+          "samples": 3,
+          "median_ms": 127.640936,
+          "p95_ms": 141.97965,
+          "min_ms": 121.715209,
+          "max_ms": 141.97965
+        },
+        "deleted_evidence": {
+          "samples": 3,
+          "median_ms": 110.323378,
+          "p95_ms": 120.099055,
+          "min_ms": 108.45393,
+          "max_ms": 120.099055
+        },
+        "restored_evidence": {
+          "samples": 3,
+          "median_ms": 117.694552,
+          "p95_ms": 124.903311,
+          "min_ms": 116.166784,
+          "max_ms": 124.903311
+        },
+        "scope_addition": {
+          "samples": 3,
+          "median_ms": 160.707474,
+          "p95_ms": 187.959223,
+          "min_ms": 146.630296,
+          "max_ms": 187.959223
+        },
+        "unchanged_branch": {
+          "samples": 3,
+          "median_ms": 118.269747,
+          "p95_ms": 119.539227,
+          "min_ms": 99.78567,
+          "max_ms": 119.539227
+        },
+        "changed_branch": {
+          "samples": 3,
+          "median_ms": 115.66968,
+          "p95_ms": 137.674075,
+          "min_ms": 107.326909,
+          "max_ms": 137.674075
+        },
+        "branch_return": {
+          "samples": 3,
+          "median_ms": 107.190285,
+          "p95_ms": 131.016616,
+          "min_ms": 97.54435,
+          "max_ms": 131.016616
+        },
+        "feature_return": {
+          "samples": 3,
+          "median_ms": 106.572475,
+          "p95_ms": 108.695017,
+          "min_ms": 104.146802,
+          "max_ms": 108.695017
+        },
+        "worktree_isolation": {
+          "samples": 3,
+          "median_ms": 142.787601,
+          "p95_ms": 147.884962,
+          "min_ms": 142.456822,
+          "max_ms": 147.884962
+        }
+      },
+      "label": "candidate",
+      "trial": 1
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "runs": 3,
+      "source_bytes": 3227640,
+      "learning_setup_ms": 4496.967773999998,
+      "storage_before": {
+        "database_allocated_bytes": 335872,
+        "database_free_bytes": 0,
+        "database_budget_bytes": 268435456,
+        "effective_database_limit_bytes": 268435456,
+        "over_budget": false,
+        "files_on_disk": {
+          "cache.sqlite3": 335872,
+          "cache.sqlite3-wal": 8272,
+          "cache.sqlite3-shm": 32768
+        },
+        "total_database_files_bytes": 376912,
+        "note_revisions": 20,
+        "note_revision_limit": 2000,
+        "receipts": 0,
+        "receipt_limit": 128,
+        "scope": "Per checkout SQLite main database limit; WAL/SHM and compaction need extra space. An existing larger database cannot shrink until prune --compact.",
+        "controls": {
+          "skill": "on",
+          "cache": "on",
+          "current_branch": "main",
+          "branch_kind": "named",
+          "branch": "on",
+          "branch_rule": "default",
+          "branch_default": "on",
+          "branch_overrides": {},
+          "effective_enabled": true,
+          "bypass_reasons": [],
+          "updated_at": null
+        }
+      },
+      "storage_after": {
+        "database_allocated_bytes": 335872,
+        "database_free_bytes": 0,
+        "database_budget_bytes": 268435456,
+        "effective_database_limit_bytes": 268435456,
+        "over_budget": false,
+        "files_on_disk": {
+          "cache.sqlite3": 335872,
+          "cache.sqlite3-wal": 8272,
+          "cache.sqlite3-shm": 32768
+        },
+        "total_database_files_bytes": 376912,
+        "note_revisions": 22,
+        "note_revision_limit": 2000,
+        "receipts": 0,
+        "receipt_limit": 128,
+        "scope": "Per checkout SQLite main database limit; WAL/SHM and compaction need extra space. An existing larger database cannot shrink until prune --compact.",
+        "controls": {
+          "skill": "on",
+          "cache": "on",
+          "current_branch": "main",
+          "branch_kind": "named",
+          "branch": "on",
+          "branch_rule": "default",
+          "branch_default": "on",
+          "branch_overrides": {},
+          "effective_enabled": true,
+          "bypass_reasons": [],
+          "updated_at": "2026-11-11T23:00:43+00:00"
+        }
+      },
+      "context_estimate": {
+        "estimated_note_tokens": 64,
+        "estimated_reduction_percent": 97.4,
+        "estimated_source_tokens": 2420,
+        "estimated_tokens_avoided": 2356,
+        "method": "Hypothetical full captured-source text versus compact note payload, ~4 chars/token. Not actual Copilot tokens, AIC, or whole-repository savings.",
+        "returned_note_chars": 256,
+        "source_chars": 9677,
+        "verified_source_files": 3
+      },
+      "checks_passed": [
+        "cold_scan",
+        "warm_hit",
+        "compact_hit",
+        "concurrent_readers_4",
+        "query_miss",
+        "budget_omission",
+        "warm_scan",
+        "full_scan",
+        "mode_off",
+        "cache_off",
+        "branch_off",
+        "repository_isolation",
+        "unrelated_edit",
+        "dirty_evidence",
+        "staged_evidence",
+        "renamed_evidence",
+        "deleted_evidence",
+        "restored_evidence",
+        "scope_addition",
+        "unchanged_branch",
+        "changed_branch",
+        "branch_return",
+        "feature_return",
+        "worktree_isolation"
+      ],
+      "raw": {
+        "cold_scan": {
+          "latency_ms": [
+            432.669175
+          ],
+          "response_bytes": [
+            1229
+          ]
+        },
+        "warm_hit": {
+          "latency_ms": [
+            117.5619,
+            119.700792,
+            119.649812
+          ],
+          "response_bytes": [
+            2959,
+            2958,
+            2959
+          ]
+        },
+        "compact_hit": {
+          "latency_ms": [
+            134.914767,
+            143.448133,
+            129.75259
+          ],
+          "response_bytes": [
+            825,
+            825,
+            825
+          ]
+        },
+        "concurrent_readers_4": {
+          "latency_ms": [
+            158.864177,
+            142.377325,
+            147.932616,
+            148.545284,
+            145.500164,
+            122.843005,
+            164.261929,
+            126.467637,
+            152.373367,
+            174.610317,
+            163.837201,
+            157.37599
+          ],
+          "response_bytes": [
+            2959,
+            2959,
+            2959,
+            2959,
+            2958,
+            2959,
+            2959,
+            2958,
+            2959,
+            2959,
+            2959,
+            2958
+          ]
+        },
+        "query_miss": {
+          "latency_ms": [
+            127.093162,
+            143.891077,
+            148.155475
+          ],
+          "response_bytes": [
+            1605,
+            1605,
+            1605
+          ]
+        },
+        "budget_omission": {
+          "latency_ms": [
+            116.041879,
+            126.398141,
+            118.840385
+          ],
+          "response_bytes": [
+            1605,
+            1605,
+            1605
+          ]
+        },
+        "warm_scan": {
+          "latency_ms": [
+            178.20241,
+            177.136529,
+            164.10705
+          ],
+          "response_bytes": [
+            1269,
+            1268,
+            1268
+          ]
+        },
+        "full_scan": {
+          "latency_ms": [
+            410.033566,
+            344.684626,
+            369.805066
+          ],
+          "response_bytes": [
+            1268,
+            1268,
+            1268
+          ]
+        },
+        "mode_off": {
+          "latency_ms": [
+            65.243743,
+            72.874952,
+            82.663572
+          ],
+          "response_bytes": [
+            488,
+            488,
+            488
+          ]
+        },
+        "cache_off": {
+          "latency_ms": [
+            78.702416,
+            80.583792,
+            82.357697
+          ],
+          "response_bytes": [
+            488,
+            488,
+            488
+          ]
+        },
+        "branch_off": {
+          "latency_ms": [
+            83.654526,
+            94.961593,
+            70.6081
+          ],
+          "response_bytes": [
+            515,
+            515,
+            515
+          ]
+        },
+        "repository_isolation": {
+          "latency_ms": [
+            83.167903,
+            88.547185,
+            73.409494
+          ],
+          "response_bytes": [
+            1066,
+            1066,
+            1066
+          ]
+        },
+        "unrelated_edit": {
+          "latency_ms": [
+            135.892491,
+            164.210152,
+            145.246739
+          ],
+          "response_bytes": [
+            3123,
+            3122,
+            3123
+          ]
+        },
+        "dirty_evidence": {
+          "latency_ms": [
+            138.973909,
+            122.963693,
+            94.400486
+          ],
+          "response_bytes": [
+            1965,
+            1965,
+            1965
+          ]
+        },
+        "staged_evidence": {
+          "latency_ms": [
+            113.661749,
+            100.669944,
+            97.341676
+          ],
+          "response_bytes": [
+            1965,
+            1965,
+            1965
+          ]
+        },
+        "renamed_evidence": {
+          "latency_ms": [
+            124.745687,
+            111.346491,
+            104.615043
+          ],
+          "response_bytes": [
+            2117,
+            2117,
+            2116
+          ]
+        },
+        "deleted_evidence": {
+          "latency_ms": [
+            108.178922,
+            118.306416,
+            113.563089
+          ],
+          "response_bytes": [
+            1989,
+            1989,
+            1989
+          ]
+        },
+        "restored_evidence": {
+          "latency_ms": [
+            114.450809,
+            115.389085,
+            110.596008
+          ],
+          "response_bytes": [
+            2982,
+            2981,
+            2982
+          ]
+        },
+        "scope_addition": {
+          "latency_ms": [
+            147.706006,
+            160.92586,
+            158.306191
+          ],
+          "response_bytes": [
+            1923,
+            1923,
+            1923
+          ]
+        },
+        "unchanged_branch": {
+          "latency_ms": [
+            100.975502,
+            105.261759,
+            101.695299
+          ],
+          "response_bytes": [
+            2987,
+            2991,
+            2991
+          ]
+        },
+        "changed_branch": {
+          "latency_ms": [
+            114.744559,
+            120.243482,
+            100.236248
+          ],
+          "response_bytes": [
+            1874,
+            1831,
+            1831
+          ]
+        },
+        "branch_return": {
+          "latency_ms": [
+            113.60636,
+            115.842419,
+            113.070763
+          ],
+          "response_bytes": [
+            3027,
+            2982,
+            2982
+          ]
+        },
+        "feature_return": {
+          "latency_ms": [
+            136.828524,
+            123.64207,
+            103.144014
+          ],
+          "response_bytes": [
+            3025,
+            2986,
+            2986
+          ]
+        },
+        "worktree_isolation": {
+          "latency_ms": [
+            160.766578,
+            124.873845,
+            117.747191
+          ],
+          "response_bytes": [
+            1562,
+            1601,
+            1601
+          ]
+        }
+      },
+      "metrics": {
+        "cold_scan": {
+          "samples": 1,
+          "median_ms": 432.669175,
+          "p95_ms": 432.669175,
+          "min_ms": 432.669175,
+          "max_ms": 432.669175
+        },
+        "warm_hit": {
+          "samples": 3,
+          "median_ms": 119.649812,
+          "p95_ms": 119.700792,
+          "min_ms": 117.5619,
+          "max_ms": 119.700792
+        },
+        "compact_hit": {
+          "samples": 3,
+          "median_ms": 134.914767,
+          "p95_ms": 143.448133,
+          "min_ms": 129.75259,
+          "max_ms": 143.448133
+        },
+        "concurrent_readers_4": {
+          "samples": 12,
+          "median_ms": 150.4593255,
+          "p95_ms": 174.610317,
+          "min_ms": 122.843005,
+          "max_ms": 174.610317
+        },
+        "query_miss": {
+          "samples": 3,
+          "median_ms": 143.891077,
+          "p95_ms": 148.155475,
+          "min_ms": 127.093162,
+          "max_ms": 148.155475
+        },
+        "budget_omission": {
+          "samples": 3,
+          "median_ms": 118.840385,
+          "p95_ms": 126.398141,
+          "min_ms": 116.041879,
+          "max_ms": 126.398141
+        },
+        "warm_scan": {
+          "samples": 3,
+          "median_ms": 177.136529,
+          "p95_ms": 178.20241,
+          "min_ms": 164.10705,
+          "max_ms": 178.20241
+        },
+        "full_scan": {
+          "samples": 3,
+          "median_ms": 369.805066,
+          "p95_ms": 410.033566,
+          "min_ms": 344.684626,
+          "max_ms": 410.033566
+        },
+        "mode_off": {
+          "samples": 3,
+          "median_ms": 72.874952,
+          "p95_ms": 82.663572,
+          "min_ms": 65.243743,
+          "max_ms": 82.663572
+        },
+        "cache_off": {
+          "samples": 3,
+          "median_ms": 80.583792,
+          "p95_ms": 82.357697,
+          "min_ms": 78.702416,
+          "max_ms": 82.357697
+        },
+        "branch_off": {
+          "samples": 3,
+          "median_ms": 83.654526,
+          "p95_ms": 94.961593,
+          "min_ms": 70.6081,
+          "max_ms": 94.961593
+        },
+        "repository_isolation": {
+          "samples": 3,
+          "median_ms": 83.167903,
+          "p95_ms": 88.547185,
+          "min_ms": 73.409494,
+          "max_ms": 88.547185
+        },
+        "unrelated_edit": {
+          "samples": 3,
+          "median_ms": 145.246739,
+          "p95_ms": 164.210152,
+          "min_ms": 135.892491,
+          "max_ms": 164.210152
+        },
+        "dirty_evidence": {
+          "samples": 3,
+          "median_ms": 122.963693,
+          "p95_ms": 138.973909,
+          "min_ms": 94.400486,
+          "max_ms": 138.973909
+        },
+        "staged_evidence": {
+          "samples": 3,
+          "median_ms": 100.669944,
+          "p95_ms": 113.661749,
+          "min_ms": 97.341676,
+          "max_ms": 113.661749
+        },
+        "renamed_evidence": {
+          "samples": 3,
+          "median_ms": 111.346491,
+          "p95_ms": 124.745687,
+          "min_ms": 104.615043,
+          "max_ms": 124.745687
+        },
+        "deleted_evidence": {
+          "samples": 3,
+          "median_ms": 113.563089,
+          "p95_ms": 118.306416,
+          "min_ms": 108.178922,
+          "max_ms": 118.306416
+        },
+        "restored_evidence": {
+          "samples": 3,
+          "median_ms": 114.450809,
+          "p95_ms": 115.389085,
+          "min_ms": 110.596008,
+          "max_ms": 115.389085
+        },
+        "scope_addition": {
+          "samples": 3,
+          "median_ms": 158.306191,
+          "p95_ms": 160.92586,
+          "min_ms": 147.706006,
+          "max_ms": 160.92586
+        },
+        "unchanged_branch": {
+          "samples": 3,
+          "median_ms": 101.695299,
+          "p95_ms": 105.261759,
+          "min_ms": 100.975502,
+          "max_ms": 105.261759
+        },
+        "changed_branch": {
+          "samples": 3,
+          "median_ms": 114.744559,
+          "p95_ms": 120.243482,
+          "min_ms": 100.236248,
+          "max_ms": 120.243482
+        },
+        "branch_return": {
+          "samples": 3,
+          "median_ms": 113.60636,
+          "p95_ms": 115.842419,
+          "min_ms": 113.070763,
+          "max_ms": 115.842419
+        },
+        "feature_return": {
+          "samples": 3,
+          "median_ms": 123.64207,
+          "p95_ms": 136.828524,
+          "min_ms": 103.144014,
+          "max_ms": 136.828524
+        },
+        "worktree_isolation": {
+          "samples": 3,
+          "median_ms": 124.873845,
+          "p95_ms": 160.766578,
+          "min_ms": 117.747191,
+          "max_ms": 160.766578
+        }
+      },
+      "label": "baseline",
+      "trial": 1
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "plain",
+      "runs": 3,
+      "source_bytes": 3227640,
+      "learning_setup_ms": 4617.806318000006,
+      "storage_before": {
+        "database_allocated_bytes": 323584,
+        "database_free_bytes": 0,
+        "database_budget_bytes": 268435456,
+        "effective_database_limit_bytes": 268435456,
+        "over_budget": false,
+        "files_on_disk": {
+          "cache.sqlite3": 323584,
+          "cache.sqlite3-wal": 8272,
+          "cache.sqlite3-shm": 32768
+        },
+        "total_database_files_bytes": 364624,
+        "note_revisions": 20,
+        "note_revision_limit": 2000,
+        "receipts": 0,
+        "receipt_limit": 128,
+        "scope": "Per checkout SQLite main database limit; WAL/SHM and compaction need extra space. An existing larger database cannot shrink until prune --compact.",
+        "controls": {
+          "skill": "on",
+          "cache": "on",
+          "current_branch": null,
+          "branch_kind": "non_git",
+          "branch": "on",
+          "branch_rule": "default",
+          "branch_default": "on",
+          "branch_overrides": {},
+          "effective_enabled": true,
+          "bypass_reasons": [],
+          "updated_at": null
+        }
+      },
+      "storage_after": {
+        "database_allocated_bytes": 323584,
+        "database_free_bytes": 4096,
+        "database_budget_bytes": 268435456,
+        "effective_database_limit_bytes": 268435456,
+        "over_budget": false,
+        "files_on_disk": {
+          "cache.sqlite3": 323584,
+          "cache.sqlite3-wal": 8272,
+          "cache.sqlite3-shm": 32768
+        },
+        "total_database_files_bytes": 364624,
+        "note_revisions": 21,
+        "note_revision_limit": 2000,
+        "receipts": 0,
+        "receipt_limit": 128,
+        "scope": "Per checkout SQLite main database limit; WAL/SHM and compaction need extra space. An existing larger database cannot shrink until prune --compact.",
+        "controls": {
+          "skill": "on",
+          "cache": "on",
+          "current_branch": null,
+          "branch_kind": "non_git",
+          "branch": "on",
+          "branch_rule": "default",
+          "branch_default": "on",
+          "branch_overrides": {},
+          "effective_enabled": true,
+          "bypass_reasons": [],
+          "updated_at": "2026-11-11T23:00:58+00:00"
+        }
+      },
+      "context_estimate": {
+        "estimated_note_tokens": 64,
+        "estimated_reduction_percent": 97.4,
+        "estimated_source_tokens": 2420,
+        "estimated_tokens_avoided": 2356,
+        "method": "Hypothetical full captured-source text versus compact note payload, ~4 chars/token. Not actual Copilot tokens, AIC, or whole-repository savings.",
+        "returned_note_chars": 256,
+        "source_chars": 9677,
+        "verified_source_files": 3
+      },
+      "checks_passed": [
+        "cold_scan",
+        "warm_hit",
+        "compact_hit",
+        "concurrent_readers_4",
+        "query_miss",
+        "budget_omission",
+        "warm_scan",
+        "full_scan",
+        "mode_off",
+        "cache_off",
+        "repository_isolation",
+        "unrelated_edit",
+        "dirty_evidence",
+        "renamed_evidence",
+        "deleted_evidence",
+        "restored_evidence",
+        "scope_addition"
+      ],
+      "raw": {
+        "cold_scan": {
+          "latency_ms": [
+            334.400416
+          ],
+          "response_bytes": [
+            773
+          ]
+        },
+        "warm_hit": {
+          "latency_ms": [
+            120.957151,
+            133.435264,
+            117.815731
+          ],
+          "response_bytes": [
+            2385,
+            2385,
+            2385
+          ]
+        },
+        "compact_hit": {
+          "latency_ms": [
+            134.872198,
+            107.17524,
+            114.686243
+          ],
+          "response_bytes": [
+            825,
+            825,
+            825
+          ]
+        },
+        "concurrent_readers_4": {
+          "latency_ms": [
+            148.756026,
+            139.204689,
+            110.212529,
+            146.286807,
+            153.702121,
+            164.980626,
+            125.330032,
+            129.827185,
+            135.084072,
+            124.508106,
+            134.939485,
+            140.771921
+          ],
+          "response_bytes": [
+            2385,
+            2385,
+            2385,
+            2385,
+            2385,
+            2385,
+            2385,
+            2385,
+            2385,
+            2385,
+            2385,
+            2385
+          ]
+        },
+        "query_miss": {
+          "latency_ms": [
+            118.40275,
+            110.12909,
+            110.633476
+          ],
+          "response_bytes": [
+            1070,
+            1071,
+            1070
+          ]
+        },
+        "budget_omission": {
+          "latency_ms": [
+            143.99055,
+            117.290755,
+            102.965767
+          ],
+          "response_bytes": [
+            1071,
+            1071,
+            1071
+          ]
+        },
+        "warm_scan": {
+          "latency_ms": [
+            162.572835,
+            166.242319,
+            200.216047
+          ],
+          "response_bytes": [
+            769,
+            770,
+            771
+          ]
+        },
+        "full_scan": {
+          "latency_ms": [
+            389.767182,
+            363.46562,
+            378.18477
+          ],
+          "response_bytes": [
+            770,
+            770,
+            770
+          ]
+        },
+        "mode_off": {
+          "latency_ms": [
+            70.027686,
+            69.125726,
+            84.507802
+          ],
+          "response_bytes": [
+            488,
+            488,
+            488
+          ]
+        },
+        "cache_off": {
+          "latency_ms": [
+            64.260119,
+            68.32841,
+            76.896766
+          ],
+          "response_bytes": [
+            488,
+            488,
+            488
+          ]
+        },
+        "repository_isolation": {
+          "latency_ms": [
+            85.989304,
+            78.585212,
+            83.451044
+          ],
+          "response_bytes": [
+            1066,
+            1066,
+            1066
+          ]
+        },
+        "unrelated_edit": {
+          "latency_ms": [
+            126.782892,
+            104.520962,
+            136.243059
+          ],
+          "response_bytes": [
+            2408,
+            2408,
+            2408
+          ]
+        },
+        "dirty_evidence": {
+          "latency_ms": [
+            149.112157,
+            145.225,
+            150.79736
+          ],
+          "response_bytes": [
+            1288,
+            1288,
+            1288
+          ]
+        },
+        "renamed_evidence": {
+          "latency_ms": [
+            109.883498,
+            127.264505,
+            168.276747
+          ],
+          "response_bytes": [
+            1288,
+            1288,
+            1288
+          ]
+        },
+        "deleted_evidence": {
+          "latency_ms": [
+            121.547565,
+            131.356857,
+            149.182886
+          ],
+          "response_bytes": [
+            1287,
+            1287,
+            1287
+          ]
+        },
+        "restored_evidence": {
+          "latency_ms": [
+            124.740093,
+            114.568492,
+            114.127798
+          ],
+          "response_bytes": [
+            2408,
+            2408,
+            2408
+          ]
+        },
+        "scope_addition": {
+          "latency_ms": [
+            150.937004,
+            151.333537,
+            161.942115
+          ],
+          "response_bytes": [
+            1264,
+            1264,
+            1264
+          ]
+        }
+      },
+      "metrics": {
+        "cold_scan": {
+          "samples": 1,
+          "median_ms": 334.400416,
+          "p95_ms": 334.400416,
+          "min_ms": 334.400416,
+          "max_ms": 334.400416
+        },
+        "warm_hit": {
+          "samples": 3,
+          "median_ms": 120.957151,
+          "p95_ms": 133.435264,
+          "min_ms": 117.815731,
+          "max_ms": 133.435264
+        },
+        "compact_hit": {
+          "samples": 3,
+          "median_ms": 114.686243,
+          "p95_ms": 134.872198,
+          "min_ms": 107.17524,
+          "max_ms": 134.872198
+        },
+        "concurrent_readers_4": {
+          "samples": 12,
+          "median_ms": 137.1443805,
+          "p95_ms": 164.980626,
+          "min_ms": 110.212529,
+          "max_ms": 164.980626
+        },
+        "query_miss": {
+          "samples": 3,
+          "median_ms": 110.633476,
+          "p95_ms": 118.40275,
+          "min_ms": 110.12909,
+          "max_ms": 118.40275
+        },
+        "budget_omission": {
+          "samples": 3,
+          "median_ms": 117.290755,
+          "p95_ms": 143.99055,
+          "min_ms": 102.965767,
+          "max_ms": 143.99055
+        },
+        "warm_scan": {
+          "samples": 3,
+          "median_ms": 166.242319,
+          "p95_ms": 200.216047,
+          "min_ms": 162.572835,
+          "max_ms": 200.216047
+        },
+        "full_scan": {
+          "samples": 3,
+          "median_ms": 378.18477,
+          "p95_ms": 389.767182,
+          "min_ms": 363.46562,
+          "max_ms": 389.767182
+        },
+        "mode_off": {
+          "samples": 3,
+          "median_ms": 70.027686,
+          "p95_ms": 84.507802,
+          "min_ms": 69.125726,
+          "max_ms": 84.507802
+        },
+        "cache_off": {
+          "samples": 3,
+          "median_ms": 68.32841,
+          "p95_ms": 76.896766,
+          "min_ms": 64.260119,
+          "max_ms": 76.896766
+        },
+        "repository_isolation": {
+          "samples": 3,
+          "median_ms": 83.451044,
+          "p95_ms": 85.989304,
+          "min_ms": 78.585212,
+          "max_ms": 85.989304
+        },
+        "unrelated_edit": {
+          "samples": 3,
+          "median_ms": 126.782892,
+          "p95_ms": 136.243059,
+          "min_ms": 104.520962,
+          "max_ms": 136.243059
+        },
+        "dirty_evidence": {
+          "samples": 3,
+          "median_ms": 149.112157,
+          "p95_ms": 150.79736,
+          "min_ms": 145.225,
+          "max_ms": 150.79736
+        },
+        "renamed_evidence": {
+          "samples": 3,
+          "median_ms": 127.264505,
+          "p95_ms": 168.276747,
+          "min_ms": 109.883498,
+          "max_ms": 168.276747
+        },
+        "deleted_evidence": {
+          "samples": 3,
+          "median_ms": 131.356857,
+          "p95_ms": 149.182886,
+          "min_ms": 121.547565,
+          "max_ms": 149.182886
+        },
+        "restored_evidence": {
+          "samples": 3,
+          "median_ms": 114.568492,
+          "p95_ms": 124.740093,
+          "min_ms": 114.127798,
+          "max_ms": 124.740093
+        },
+        "scope_addition": {
+          "samples": 3,
+          "median_ms": 151.333537,
+          "p95_ms": 161.942115,
+          "min_ms": 150.937004,
+          "max_ms": 161.942115
+        }
+      },
+      "label": "candidate",
+      "trial": 1
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "plain",
+      "runs": 3,
+      "source_bytes": 3227640,
+      "learning_setup_ms": 4327.976843000002,
+      "storage_before": {
+        "database_allocated_bytes": 323584,
+        "database_free_bytes": 0,
+        "database_budget_bytes": 268435456,
+        "effective_database_limit_bytes": 268435456,
+        "over_budget": false,
+        "files_on_disk": {
+          "cache.sqlite3": 323584,
+          "cache.sqlite3-wal": 8272,
+          "cache.sqlite3-shm": 32768
+        },
+        "total_database_files_bytes": 364624,
+        "note_revisions": 20,
+        "note_revision_limit": 2000,
+        "receipts": 0,
+        "receipt_limit": 128,
+        "scope": "Per checkout SQLite main database limit; WAL/SHM and compaction need extra space. An existing larger database cannot shrink until prune --compact.",
+        "controls": {
+          "skill": "on",
+          "cache": "on",
+          "current_branch": null,
+          "branch_kind": "non_git",
+          "branch": "on",
+          "branch_rule": "default",
+          "branch_default": "on",
+          "branch_overrides": {},
+          "effective_enabled": true,
+          "bypass_reasons": [],
+          "updated_at": null
+        }
+      },
+      "storage_after": {
+        "database_allocated_bytes": 323584,
+        "database_free_bytes": 4096,
+        "database_budget_bytes": 268435456,
+        "effective_database_limit_bytes": 268435456,
+        "over_budget": false,
+        "files_on_disk": {
+          "cache.sqlite3": 323584,
+          "cache.sqlite3-wal": 8272,
+          "cache.sqlite3-shm": 32768
+        },
+        "total_database_files_bytes": 364624,
+        "note_revisions": 21,
+        "note_revision_limit": 2000,
+        "receipts": 0,
+        "receipt_limit": 128,
+        "scope": "Per checkout SQLite main database limit; WAL/SHM and compaction need extra space. An existing larger database cannot shrink until prune --compact.",
+        "controls": {
+          "skill": "on",
+          "cache": "on",
+          "current_branch": null,
+          "branch_kind": "non_git",
+          "branch": "on",
+          "branch_rule": "default",
+          "branch_default": "on",
+          "branch_overrides": {},
+          "effective_enabled": true,
+          "bypass_reasons": [],
+          "updated_at": "2026-11-11T23:01:10+00:00"
+        }
+      },
+      "context_estimate": {
+        "estimated_note_tokens": 64,
+        "estimated_reduction_percent": 97.4,
+        "estimated_source_tokens": 2420,
+        "estimated_tokens_avoided": 2356,
+        "method": "Hypothetical full captured-source text versus compact note payload, ~4 chars/token. Not actual Copilot tokens, AIC, or whole-repository savings.",
+        "returned_note_chars": 256,
+        "source_chars": 9677,
+        "verified_source_files": 3
+      },
+      "checks_passed": [
+        "cold_scan",
+        "warm_hit",
+        "compact_hit",
+        "concurrent_readers_4",
+        "query_miss",
+        "budget_omission",
+        "warm_scan",
+        "full_scan",
+        "mode_off",
+        "cache_off",
+        "repository_isolation",
+        "unrelated_edit",
+        "dirty_evidence",
+        "renamed_evidence",
+        "deleted_evidence",
+        "restored_evidence",
+        "scope_addition"
+      ],
+      "raw": {
+        "cold_scan": {
+          "latency_ms": [
+            458.146756
+          ],
+          "response_bytes": [
+            773
+          ]
+        },
+        "warm_hit": {
+          "latency_ms": [
+            117.499329,
+            111.648221,
+            134.42247
+          ],
+          "response_bytes": [
+            2385,
+            2385,
+            2385
+          ]
+        },
+        "compact_hit": {
+          "latency_ms": [
+            116.163472,
+            112.207536,
+            129.75658
+          ],
+          "response_bytes": [
+            825,
+            825,
+            825
+          ]
+        },
+        "concurrent_readers_4": {
+          "latency_ms": [
+            170.962285,
+            171.214969,
+            175.04329,
+            140.240039,
+            175.827678,
+            169.562031,
+            174.281093,
+            163.978417,
+            159.730435,
+            178.731853,
+            181.047999,
+            170.185957
+          ],
+          "response_bytes": [
+            2384,
+            2385,
+            2385,
+            2385,
+            2385,
+            2385,
+            2385,
+            2385,
+            2385,
+            2385,
+            2385,
+            2385
+          ]
+        },
+        "query_miss": {
+          "latency_ms": [
+            126.164984,
+            124.262526,
+            125.948949
+          ],
+          "response_bytes": [
+            1071,
+            1071,
+            1071
+          ]
+        },
+        "budget_omission": {
+          "latency_ms": [
+            162.18499,
+            104.884521,
+            126.216232
+          ],
+          "response_bytes": [
+            1071,
+            1071,
+            1071
+          ]
+        },
+        "warm_scan": {
+          "latency_ms": [
+            167.1227,
+            157.435255,
+            159.588
+          ],
+          "response_bytes": [
+            771,
+            770,
+            770
+          ]
+        },
+        "full_scan": {
+          "latency_ms": [
+            332.39107,
+            323.307894,
+            352.329012
+          ],
+          "response_bytes": [
+            770,
+            770,
+            770
+          ]
+        },
+        "mode_off": {
+          "latency_ms": [
+            85.396121,
+            86.852296,
+            77.542073
+          ],
+          "response_bytes": [
+            488,
+            488,
+            488
+          ]
+        },
+        "cache_off": {
+          "latency_ms": [
+            67.502618,
+            74.059856,
+            73.270178
+          ],
+          "response_bytes": [
+            488,
+            488,
+            488
+          ]
+        },
+        "repository_isolation": {
+          "latency_ms": [
+            83.655946,
+            88.797933,
+            71.869264
+          ],
+          "response_bytes": [
+            1066,
+            1066,
+            1066
+          ]
+        },
+        "unrelated_edit": {
+          "latency_ms": [
+            128.200703,
+            124.544827,
+            128.325853
+          ],
+          "response_bytes": [
+            2408,
+            2408,
+            2408
+          ]
+        },
+        "dirty_evidence": {
+          "latency_ms": [
+            123.581208,
+            129.016964,
+            120.378528
+          ],
+          "response_bytes": [
+            1287,
+            1288,
+            1288
+          ]
+        },
+        "renamed_evidence": {
+          "latency_ms": [
+            146.664398,
+            139.647593,
+            141.459685
+          ],
+          "response_bytes": [
+            1288,
+            1288,
+            1287
+          ]
+        },
+        "deleted_evidence": {
+          "latency_ms": [
+            140.129424,
+            119.579114,
+            113.212162
+          ],
+          "response_bytes": [
+            1287,
+            1287,
+            1287
+          ]
+        },
+        "restored_evidence": {
+          "latency_ms": [
+            132.781281,
+            118.706952,
+            120.975445
+          ],
+          "response_bytes": [
+            2407,
+            2408,
+            2408
+          ]
+        },
+        "scope_addition": {
+          "latency_ms": [
+            173.883137,
+            159.222248,
+            158.135821
+          ],
+          "response_bytes": [
+            1264,
+            1264,
+            1264
+          ]
+        }
+      },
+      "metrics": {
+        "cold_scan": {
+          "samples": 1,
+          "median_ms": 458.146756,
+          "p95_ms": 458.146756,
+          "min_ms": 458.146756,
+          "max_ms": 458.146756
+        },
+        "warm_hit": {
+          "samples": 3,
+          "median_ms": 117.499329,
+          "p95_ms": 134.42247,
+          "min_ms": 111.648221,
+          "max_ms": 134.42247
+        },
+        "compact_hit": {
+          "samples": 3,
+          "median_ms": 116.163472,
+          "p95_ms": 129.75658,
+          "min_ms": 112.207536,
+          "max_ms": 129.75658
+        },
+        "concurrent_readers_4": {
+          "samples": 12,
+          "median_ms": 171.088627,
+          "p95_ms": 181.047999,
+          "min_ms": 140.240039,
+          "max_ms": 181.047999
+        },
+        "query_miss": {
+          "samples": 3,
+          "median_ms": 125.948949,
+          "p95_ms": 126.164984,
+          "min_ms": 124.262526,
+          "max_ms": 126.164984
+        },
+        "budget_omission": {
+          "samples": 3,
+          "median_ms": 126.216232,
+          "p95_ms": 162.18499,
+          "min_ms": 104.884521,
+          "max_ms": 162.18499
+        },
+        "warm_scan": {
+          "samples": 3,
+          "median_ms": 159.588,
+          "p95_ms": 167.1227,
+          "min_ms": 157.435255,
+          "max_ms": 167.1227
+        },
+        "full_scan": {
+          "samples": 3,
+          "median_ms": 332.39107,
+          "p95_ms": 352.329012,
+          "min_ms": 323.307894,
+          "max_ms": 352.329012
+        },
+        "mode_off": {
+          "samples": 3,
+          "median_ms": 85.396121,
+          "p95_ms": 86.852296,
+          "min_ms": 77.542073,
+          "max_ms": 86.852296
+        },
+        "cache_off": {
+          "samples": 3,
+          "median_ms": 73.270178,
+          "p95_ms": 74.059856,
+          "min_ms": 67.502618,
+          "max_ms": 74.059856
+        },
+        "repository_isolation": {
+          "samples": 3,
+          "median_ms": 83.655946,
+          "p95_ms": 88.797933,
+          "min_ms": 71.869264,
+          "max_ms": 88.797933
+        },
+        "unrelated_edit": {
+          "samples": 3,
+          "median_ms": 128.200703,
+          "p95_ms": 128.325853,
+          "min_ms": 124.544827,
+          "max_ms": 128.325853
+        },
+        "dirty_evidence": {
+          "samples": 3,
+          "median_ms": 123.581208,
+          "p95_ms": 129.016964,
+          "min_ms": 120.378528,
+          "max_ms": 129.016964
+        },
+        "renamed_evidence": {
+          "samples": 3,
+          "median_ms": 141.459685,
+          "p95_ms": 146.664398,
+          "min_ms": 139.647593,
+          "max_ms": 146.664398
+        },
+        "deleted_evidence": {
+          "samples": 3,
+          "median_ms": 119.579114,
+          "p95_ms": 140.129424,
+          "min_ms": 113.212162,
+          "max_ms": 140.129424
+        },
+        "restored_evidence": {
+          "samples": 3,
+          "median_ms": 120.975445,
+          "p95_ms": 132.781281,
+          "min_ms": 118.706952,
+          "max_ms": 132.781281
+        },
+        "scope_addition": {
+          "samples": 3,
+          "median_ms": 159.222248,
+          "p95_ms": 173.883137,
+          "min_ms": 158.135821,
+          "max_ms": 173.883137
+        }
+      },
+      "label": "baseline",
+      "trial": 1
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "runs": 3,
+      "source_bytes": 16142640,
+      "learning_setup_ms": 96563.46850199999,
+      "storage_before": {
+        "database_allocated_bytes": 1454080,
+        "database_free_bytes": 0,
+        "database_budget_bytes": 268435456,
+        "effective_database_limit_bytes": 268435456,
+        "over_budget": false,
+        "files_on_disk": {
+          "cache.sqlite3": 1454080,
+          "cache.sqlite3-wal": 8272,
+          "cache.sqlite3-shm": 32768
+        },
+        "total_database_files_bytes": 1495120,
+        "note_revisions": 100,
+        "note_revision_limit": 2000,
+        "receipts": 0,
+        "receipt_limit": 128,
+        "scope": "Per checkout SQLite main database limit; WAL/SHM and compaction need extra space. An existing larger database cannot shrink until prune --compact.",
+        "controls": {
+          "skill": "on",
+          "cache": "on",
+          "current_branch": "main",
+          "branch_kind": "named",
+          "branch": "on",
+          "branch_rule": "default",
+          "branch_default": "on",
+          "branch_overrides": {},
+          "effective_enabled": true,
+          "bypass_reasons": [],
+          "updated_at": null
+        }
+      },
+      "storage_after": {
+        "database_allocated_bytes": 1458176,
+        "database_free_bytes": 0,
+        "database_budget_bytes": 268435456,
+        "effective_database_limit_bytes": 268435456,
+        "over_budget": false,
+        "files_on_disk": {
+          "cache.sqlite3": 1458176,
+          "cache.sqlite3-wal": 8272,
+          "cache.sqlite3-shm": 32768
+        },
+        "total_database_files_bytes": 1499216,
+        "note_revisions": 102,
+        "note_revision_limit": 2000,
+        "receipts": 0,
+        "receipt_limit": 128,
+        "scope": "Per checkout SQLite main database limit; WAL/SHM and compaction need extra space. An existing larger database cannot shrink until prune --compact.",
+        "controls": {
+          "skill": "on",
+          "cache": "on",
+          "current_branch": "main",
+          "branch_kind": "named",
+          "branch": "on",
+          "branch_rule": "default",
+          "branch_default": "on",
+          "branch_overrides": {},
+          "effective_enabled": true,
+          "bypass_reasons": [],
+          "updated_at": "2026-11-11T23:03:07+00:00"
+        }
+      },
+      "context_estimate": {
+        "estimated_note_tokens": 64,
+        "estimated_reduction_percent": 97.4,
+        "estimated_source_tokens": 2420,
+        "estimated_tokens_avoided": 2356,
+        "method": "Hypothetical full captured-source text versus compact note payload, ~4 chars/token. Not actual Copilot tokens, AIC, or whole-repository savings.",
+        "returned_note_chars": 256,
+        "source_chars": 9677,
+        "verified_source_files": 3
+      },
+      "checks_passed": [
+        "cold_scan",
+        "warm_hit",
+        "compact_hit",
+        "concurrent_readers_4",
+        "query_miss",
+        "budget_omission",
+        "warm_scan",
+        "full_scan",
+        "mode_off",
+        "cache_off",
+        "branch_off",
+        "repository_isolation",
+        "unrelated_edit",
+        "dirty_evidence",
+        "staged_evidence",
+        "renamed_evidence",
+        "deleted_evidence",
+        "restored_evidence",
+        "scope_addition",
+        "unchanged_branch",
+        "changed_branch",
+        "branch_return",
+        "feature_return",
+        "worktree_isolation"
+      ],
+      "raw": {
+        "cold_scan": {
+          "latency_ms": [
+            1397.014115
+          ],
+          "response_bytes": [
+            1230
+          ]
+        },
+        "warm_hit": {
+          "latency_ms": [
+            316.257754,
+            306.40533,
+            275.432172
+          ],
+          "response_bytes": [
+            2959,
+            2960,
+            2960
+          ]
+        },
+        "compact_hit": {
+          "latency_ms": [
+            244.196958,
+            255.044723,
+            393.905432
+          ],
+          "response_bytes": [
+            825,
+            825,
+            825
+          ]
+        },
+        "concurrent_readers_4": {
+          "latency_ms": [
+            376.314734,
+            365.534969,
+            380.594561,
+            375.587516,
+            318.618956,
+            332.691386,
+            294.2722,
+            322.588605,
+            332.095072,
+            354.700105,
+            333.529511,
+            343.232199
+          ],
+          "response_bytes": [
+            2960,
+            2960,
+            2960,
+            2960,
+            2960,
+            2960,
+            2960,
+            2960,
+            2960,
+            2960,
+            2960,
+            2960
+          ]
+        },
+        "query_miss": {
+          "latency_ms": [
+            280.744295,
+            289.186405,
+            270.086249
+          ],
+          "response_bytes": [
+            1605,
+            1606,
+            1606
+          ]
+        },
+        "budget_omission": {
+          "latency_ms": [
+            288.239969,
+            269.944024,
+            280.405221
+          ],
+          "response_bytes": [
+            1606,
+            1606,
+            1606
+          ]
+        },
+        "warm_scan": {
+          "latency_ms": [
+            607.357294,
+            596.821504,
+            538.758577
+          ],
+          "response_bytes": [
+            1269,
+            1269,
+            1269
+          ]
+        },
+        "full_scan": {
+          "latency_ms": [
+            1591.787522,
+            1576.876751,
+            2932.30453
+          ],
+          "response_bytes": [
+            1268,
+            1269,
+            1269
+          ]
+        },
+        "mode_off": {
+          "latency_ms": [
+            89.652138,
+            121.638533,
+            131.190457
+          ],
+          "response_bytes": [
+            488,
+            488,
+            488
+          ]
+        },
+        "cache_off": {
+          "latency_ms": [
+            141.448789,
+            111.160583,
+            108.944524
+          ],
+          "response_bytes": [
+            488,
+            488,
+            488
+          ]
+        },
+        "branch_off": {
+          "latency_ms": [
+            253.402342,
+            112.658397,
+            114.763325
+          ],
+          "response_bytes": [
+            515,
+            515,
+            515
+          ]
+        },
+        "repository_isolation": {
+          "latency_ms": [
+            154.385173,
+            115.580499,
+            115.11212
+          ],
+          "response_bytes": [
+            1066,
+            1066,
+            1066
+          ]
+        },
+        "unrelated_edit": {
+          "latency_ms": [
+            302.267688,
+            343.471737,
+            382.236196
+          ],
+          "response_bytes": [
+            3124,
+            3124,
+            3123
+          ]
+        },
+        "dirty_evidence": {
+          "latency_ms": [
+            500.278185,
+            196.376491,
+            195.939554
+          ],
+          "response_bytes": [
+            1965,
+            1965,
+            1965
+          ]
+        },
+        "staged_evidence": {
+          "latency_ms": [
+            214.882331,
+            171.334157,
+            211.638003
+          ],
+          "response_bytes": [
+            1966,
+            1965,
+            1965
+          ]
+        },
+        "renamed_evidence": {
+          "latency_ms": [
+            244.106574,
+            256.720656,
+            165.277874
+          ],
+          "response_bytes": [
+            2118,
+            2117,
+            2116
+          ]
+        },
+        "deleted_evidence": {
+          "latency_ms": [
+            207.429578,
+            165.067608,
+            207.668482
+          ],
+          "response_bytes": [
+            1989,
+            1989,
+            1989
+          ]
+        },
+        "restored_evidence": {
+          "latency_ms": [
+            211.259729,
+            186.895601,
+            163.713053
+          ],
+          "response_bytes": [
+            2983,
+            2982,
+            2982
+          ]
+        },
+        "scope_addition": {
+          "latency_ms": [
+            340.459134,
+            397.02345,
+            378.508864
+          ],
+          "response_bytes": [
+            1928,
+            1928,
+            1928
+          ]
+        },
+        "unchanged_branch": {
+          "latency_ms": [
+            166.614894,
+            156.008672,
+            178.639436
+          ],
+          "response_bytes": [
+            2986,
+            2991,
+            2991
+          ]
+        },
+        "changed_branch": {
+          "latency_ms": [
+            474.023078,
+            181.406533,
+            158.566155
+          ],
+          "response_bytes": [
+            1874,
+            1831,
+            1831
+          ]
+        },
+        "branch_return": {
+          "latency_ms": [
+            186.645638,
+            176.679918,
+            143.773523
+          ],
+          "response_bytes": [
+            3027,
+            2982,
+            2982
+          ]
+        },
+        "feature_return": {
+          "latency_ms": [
+            177.230836,
+            171.981293,
+            143.953905
+          ],
+          "response_bytes": [
+            3025,
+            2985,
+            2986
+          ]
+        },
+        "worktree_isolation": {
+          "latency_ms": [
+            256.846265,
+            253.466993,
+            278.624114
+          ],
+          "response_bytes": [
+            1563,
+            1602,
+            1602
+          ]
+        }
+      },
+      "metrics": {
+        "cold_scan": {
+          "samples": 1,
+          "median_ms": 1397.014115,
+          "p95_ms": 1397.014115,
+          "min_ms": 1397.014115,
+          "max_ms": 1397.014115
+        },
+        "warm_hit": {
+          "samples": 3,
+          "median_ms": 306.40533,
+          "p95_ms": 316.257754,
+          "min_ms": 275.432172,
+          "max_ms": 316.257754
+        },
+        "compact_hit": {
+          "samples": 3,
+          "median_ms": 255.044723,
+          "p95_ms": 393.905432,
+          "min_ms": 244.196958,
+          "max_ms": 393.905432
+        },
+        "concurrent_readers_4": {
+          "samples": 12,
+          "median_ms": 338.380855,
+          "p95_ms": 380.594561,
+          "min_ms": 294.2722,
+          "max_ms": 380.594561
+        },
+        "query_miss": {
+          "samples": 3,
+          "median_ms": 280.744295,
+          "p95_ms": 289.186405,
+          "min_ms": 270.086249,
+          "max_ms": 289.186405
+        },
+        "budget_omission": {
+          "samples": 3,
+          "median_ms": 280.405221,
+          "p95_ms": 288.239969,
+          "min_ms": 269.944024,
+          "max_ms": 288.239969
+        },
+        "warm_scan": {
+          "samples": 3,
+          "median_ms": 596.821504,
+          "p95_ms": 607.357294,
+          "min_ms": 538.758577,
+          "max_ms": 607.357294
+        },
+        "full_scan": {
+          "samples": 3,
+          "median_ms": 1591.787522,
+          "p95_ms": 2932.30453,
+          "min_ms": 1576.876751,
+          "max_ms": 2932.30453
+        },
+        "mode_off": {
+          "samples": 3,
+          "median_ms": 121.638533,
+          "p95_ms": 131.190457,
+          "min_ms": 89.652138,
+          "max_ms": 131.190457
+        },
+        "cache_off": {
+          "samples": 3,
+          "median_ms": 111.160583,
+          "p95_ms": 141.448789,
+          "min_ms": 108.944524,
+          "max_ms": 141.448789
+        },
+        "branch_off": {
+          "samples": 3,
+          "median_ms": 114.763325,
+          "p95_ms": 253.402342,
+          "min_ms": 112.658397,
+          "max_ms": 253.402342
+        },
+        "repository_isolation": {
+          "samples": 3,
+          "median_ms": 115.580499,
+          "p95_ms": 154.385173,
+          "min_ms": 115.11212,
+          "max_ms": 154.385173
+        },
+        "unrelated_edit": {
+          "samples": 3,
+          "median_ms": 343.471737,
+          "p95_ms": 382.236196,
+          "min_ms": 302.267688,
+          "max_ms": 382.236196
+        },
+        "dirty_evidence": {
+          "samples": 3,
+          "median_ms": 196.376491,
+          "p95_ms": 500.278185,
+          "min_ms": 195.939554,
+          "max_ms": 500.278185
+        },
+        "staged_evidence": {
+          "samples": 3,
+          "median_ms": 211.638003,
+          "p95_ms": 214.882331,
+          "min_ms": 171.334157,
+          "max_ms": 214.882331
+        },
+        "renamed_evidence": {
+          "samples": 3,
+          "median_ms": 244.106574,
+          "p95_ms": 256.720656,
+          "min_ms": 165.277874,
+          "max_ms": 256.720656
+        },
+        "deleted_evidence": {
+          "samples": 3,
+          "median_ms": 207.429578,
+          "p95_ms": 207.668482,
+          "min_ms": 165.067608,
+          "max_ms": 207.668482
+        },
+        "restored_evidence": {
+          "samples": 3,
+          "median_ms": 186.895601,
+          "p95_ms": 211.259729,
+          "min_ms": 163.713053,
+          "max_ms": 211.259729
+        },
+        "scope_addition": {
+          "samples": 3,
+          "median_ms": 378.508864,
+          "p95_ms": 397.02345,
+          "min_ms": 340.459134,
+          "max_ms": 397.02345
+        },
+        "unchanged_branch": {
+          "samples": 3,
+          "median_ms": 166.614894,
+          "p95_ms": 178.639436,
+          "min_ms": 156.008672,
+          "max_ms": 178.639436
+        },
+        "changed_branch": {
+          "samples": 3,
+          "median_ms": 181.406533,
+          "p95_ms": 474.023078,
+          "min_ms": 158.566155,
+          "max_ms": 474.023078
+        },
+        "branch_return": {
+          "samples": 3,
+          "median_ms": 176.679918,
+          "p95_ms": 186.645638,
+          "min_ms": 143.773523,
+          "max_ms": 186.645638
+        },
+        "feature_return": {
+          "samples": 3,
+          "median_ms": 171.981293,
+          "p95_ms": 177.230836,
+          "min_ms": 143.953905,
+          "max_ms": 177.230836
+        },
+        "worktree_isolation": {
+          "samples": 3,
+          "median_ms": 256.846265,
+          "p95_ms": 278.624114,
+          "min_ms": 253.466993,
+          "max_ms": 278.624114
+        }
+      },
+      "label": "candidate",
+      "trial": 1
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "runs": 3,
+      "source_bytes": 16142640,
+      "learning_setup_ms": 70463.24237400001,
+      "storage_before": {
+        "database_allocated_bytes": 1454080,
+        "database_free_bytes": 0,
+        "database_budget_bytes": 268435456,
+        "effective_database_limit_bytes": 268435456,
+        "over_budget": false,
+        "files_on_disk": {
+          "cache.sqlite3": 1454080,
+          "cache.sqlite3-wal": 8272,
+          "cache.sqlite3-shm": 32768
+        },
+        "total_database_files_bytes": 1495120,
+        "note_revisions": 100,
+        "note_revision_limit": 2000,
+        "receipts": 0,
+        "receipt_limit": 128,
+        "scope": "Per checkout SQLite main database limit; WAL/SHM and compaction need extra space. An existing larger database cannot shrink until prune --compact.",
+        "controls": {
+          "skill": "on",
+          "cache": "on",
+          "current_branch": "main",
+          "branch_kind": "named",
+          "branch": "on",
+          "branch_rule": "default",
+          "branch_default": "on",
+          "branch_overrides": {},
+          "effective_enabled": true,
+          "bypass_reasons": [],
+          "updated_at": null
+        }
+      },
+      "storage_after": {
+        "database_allocated_bytes": 1458176,
+        "database_free_bytes": 0,
+        "database_budget_bytes": 268435456,
+        "effective_database_limit_bytes": 268435456,
+        "over_budget": false,
+        "files_on_disk": {
+          "cache.sqlite3": 1458176,
+          "cache.sqlite3-wal": 8272,
+          "cache.sqlite3-shm": 32768
+        },
+        "total_database_files_bytes": 1499216,
+        "note_revisions": 102,
+        "note_revision_limit": 2000,
+        "receipts": 0,
+        "receipt_limit": 128,
+        "scope": "Per checkout SQLite main database limit; WAL/SHM and compaction need extra space. An existing larger database cannot shrink until prune --compact.",
+        "controls": {
+          "skill": "on",
+          "cache": "on",
+          "current_branch": "main",
+          "branch_kind": "named",
+          "branch": "on",
+          "branch_rule": "default",
+          "branch_default": "on",
+          "branch_overrides": {},
+          "effective_enabled": true,
+          "bypass_reasons": [],
+          "updated_at": "2026-11-11T23:04:42+00:00"
+        }
+      },
+      "context_estimate": {
+        "estimated_note_tokens": 64,
+        "estimated_reduction_percent": 97.4,
+        "estimated_source_tokens": 2420,
+        "estimated_tokens_avoided": 2356,
+        "method": "Hypothetical full captured-source text versus compact note payload, ~4 chars/token. Not actual Copilot tokens, AIC, or whole-repository savings.",
+        "returned_note_chars": 256,
+        "source_chars": 9677,
+        "verified_source_files": 3
+      },
+      "checks_passed": [
+        "cold_scan",
+        "warm_hit",
+        "compact_hit",
+        "concurrent_readers_4",
+        "query_miss",
+        "budget_omission",
+        "warm_scan",
+        "full_scan",
+        "mode_off",
+        "cache_off",
+        "branch_off",
+        "repository_isolation",
+        "unrelated_edit",
+        "dirty_evidence",
+        "staged_evidence",
+        "renamed_evidence",
+        "deleted_evidence",
+        "restored_evidence",
+        "scope_addition",
+        "unchanged_branch",
+        "changed_branch",
+        "branch_return",
+        "feature_return",
+        "worktree_isolation"
+      ],
+      "raw": {
+        "cold_scan": {
+          "latency_ms": [
+            1342.652193
+          ],
+          "response_bytes": [
+            1230
+          ]
+        },
+        "warm_hit": {
+          "latency_ms": [
+            229.484221,
+            138.971224,
+            137.588956
+          ],
+          "response_bytes": [
+            2959,
+            2959,
+            2959
+          ]
+        },
+        "compact_hit": {
+          "latency_ms": [
+            211.260834,
+            190.449759,
+            143.044997
+          ],
+          "response_bytes": [
+            825,
+            825,
+            825
+          ]
+        },
+        "concurrent_readers_4": {
+          "latency_ms": [
+            227.773043,
+            175.981509,
+            222.935715,
+            161.632888,
+            154.118592,
+            160.616066,
+            141.553106,
+            163.694013,
+            192.433046,
+            186.82314,
+            203.90367,
+            201.288672
+          ],
+          "response_bytes": [
+            2959,
+            2959,
+            2959,
+            2959,
+            2959,
+            2959,
+            2959,
+            2959,
+            2958,
+            2958,
+            2959,
+            2959
+          ]
+        },
+        "query_miss": {
+          "latency_ms": [
+            150.222162,
+            167.397283,
+            183.530027
+          ],
+          "response_bytes": [
+            1605,
+            1605,
+            1605
+          ]
+        },
+        "budget_omission": {
+          "latency_ms": [
+            192.532244,
+            188.615663,
+            174.655718
+          ],
+          "response_bytes": [
+            1605,
+            1605,
+            1605
+          ]
+        },
+        "warm_scan": {
+          "latency_ms": [
+            448.897712,
+            499.942853,
+            486.777862
+          ],
+          "response_bytes": [
+            1269,
+            1269,
+            1269
+          ]
+        },
+        "full_scan": {
+          "latency_ms": [
+            1550.888831,
+            1481.414352,
+            1772.950908
+          ],
+          "response_bytes": [
+            1269,
+            1269,
+            1269
+          ]
+        },
+        "mode_off": {
+          "latency_ms": [
+            113.085083,
+            98.335763,
+            77.341258
+          ],
+          "response_bytes": [
+            488,
+            488,
+            488
+          ]
+        },
+        "cache_off": {
+          "latency_ms": [
+            106.36244,
+            125.363065,
+            91.314982
+          ],
+          "response_bytes": [
+            488,
+            488,
+            488
+          ]
+        },
+        "branch_off": {
+          "latency_ms": [
+            85.703826,
+            82.290177,
+            78.337414
+          ],
+          "response_bytes": [
+            515,
+            515,
+            515
+          ]
+        },
+        "repository_isolation": {
+          "latency_ms": [
+            83.688505,
+            79.147965,
+            89.746215
+          ],
+          "response_bytes": [
+            1066,
+            1066,
+            1066
+          ]
+        },
+        "unrelated_edit": {
+          "latency_ms": [
+            153.528939,
+            142.598526,
+            163.411128
+          ],
+          "response_bytes": [
+            3123,
+            3123,
+            3122
+          ]
+        },
+        "dirty_evidence": {
+          "latency_ms": [
+            182.037908,
+            128.82265,
+            116.565606
+          ],
+          "response_bytes": [
+            1964,
+            1965,
+            1965
+          ]
+        },
+        "staged_evidence": {
+          "latency_ms": [
+            203.020042,
+            149.136637,
+            171.564448
+          ],
+          "response_bytes": [
+            1964,
+            1965,
+            1965
+          ]
+        },
+        "renamed_evidence": {
+          "latency_ms": [
+            147.902836,
+            142.382716,
+            137.284611
+          ],
+          "response_bytes": [
+            2117,
+            2117,
+            2117
+          ]
+        },
+        "deleted_evidence": {
+          "latency_ms": [
+            171.074016,
+            145.986942,
+            163.257046
+          ],
+          "response_bytes": [
+            1989,
+            1988,
+            1988
+          ]
+        },
+        "restored_evidence": {
+          "latency_ms": [
+            149.982465,
+            170.523347,
+            148.806487
+          ],
+          "response_bytes": [
+            2982,
+            2982,
+            2982
+          ]
+        },
+        "scope_addition": {
+          "latency_ms": [
+            374.648178,
+            375.61343,
+            362.132755
+          ],
+          "response_bytes": [
+            1928,
+            1927,
+            1928
+          ]
+        },
+        "unchanged_branch": {
+          "latency_ms": [
+            203.656115,
+            147.095617,
+            147.897141
+          ],
+          "response_bytes": [
+            2987,
+            2990,
+            2991
+          ]
+        },
+        "changed_branch": {
+          "latency_ms": [
+            234.394401,
+            149.810087,
+            162.357186
+          ],
+          "response_bytes": [
+            1874,
+            1831,
+            1831
+          ]
+        },
+        "branch_return": {
+          "latency_ms": [
+            254.630761,
+            151.269538,
+            135.831651
+          ],
+          "response_bytes": [
+            3028,
+            2982,
+            2982
+          ]
+        },
+        "feature_return": {
+          "latency_ms": [
+            142.298106,
+            131.941115,
+            147.985719
+          ],
+          "response_bytes": [
+            3024,
+            2985,
+            2985
+          ]
+        },
+        "worktree_isolation": {
+          "latency_ms": [
+            202.370069,
+            178.302158,
+            223.44647
+          ],
+          "response_bytes": [
+            1563,
+            1602,
+            1602
+          ]
+        }
+      },
+      "metrics": {
+        "cold_scan": {
+          "samples": 1,
+          "median_ms": 1342.652193,
+          "p95_ms": 1342.652193,
+          "min_ms": 1342.652193,
+          "max_ms": 1342.652193
+        },
+        "warm_hit": {
+          "samples": 3,
+          "median_ms": 138.971224,
+          "p95_ms": 229.484221,
+          "min_ms": 137.588956,
+          "max_ms": 229.484221
+        },
+        "compact_hit": {
+          "samples": 3,
+          "median_ms": 190.449759,
+          "p95_ms": 211.260834,
+          "min_ms": 143.044997,
+          "max_ms": 211.260834
+        },
+        "concurrent_readers_4": {
+          "samples": 12,
+          "median_ms": 181.4023245,
+          "p95_ms": 227.773043,
+          "min_ms": 141.553106,
+          "max_ms": 227.773043
+        },
+        "query_miss": {
+          "samples": 3,
+          "median_ms": 167.397283,
+          "p95_ms": 183.530027,
+          "min_ms": 150.222162,
+          "max_ms": 183.530027
+        },
+        "budget_omission": {
+          "samples": 3,
+          "median_ms": 188.615663,
+          "p95_ms": 192.532244,
+          "min_ms": 174.655718,
+          "max_ms": 192.532244
+        },
+        "warm_scan": {
+          "samples": 3,
+          "median_ms": 486.777862,
+          "p95_ms": 499.942853,
+          "min_ms": 448.897712,
+          "max_ms": 499.942853
+        },
+        "full_scan": {
+          "samples": 3,
+          "median_ms": 1550.888831,
+          "p95_ms": 1772.950908,
+          "min_ms": 1481.414352,
+          "max_ms": 1772.950908
+        },
+        "mode_off": {
+          "samples": 3,
+          "median_ms": 98.335763,
+          "p95_ms": 113.085083,
+          "min_ms": 77.341258,
+          "max_ms": 113.085083
+        },
+        "cache_off": {
+          "samples": 3,
+          "median_ms": 106.36244,
+          "p95_ms": 125.363065,
+          "min_ms": 91.314982,
+          "max_ms": 125.363065
+        },
+        "branch_off": {
+          "samples": 3,
+          "median_ms": 82.290177,
+          "p95_ms": 85.703826,
+          "min_ms": 78.337414,
+          "max_ms": 85.703826
+        },
+        "repository_isolation": {
+          "samples": 3,
+          "median_ms": 83.688505,
+          "p95_ms": 89.746215,
+          "min_ms": 79.147965,
+          "max_ms": 89.746215
+        },
+        "unrelated_edit": {
+          "samples": 3,
+          "median_ms": 153.528939,
+          "p95_ms": 163.411128,
+          "min_ms": 142.598526,
+          "max_ms": 163.411128
+        },
+        "dirty_evidence": {
+          "samples": 3,
+          "median_ms": 128.82265,
+          "p95_ms": 182.037908,
+          "min_ms": 116.565606,
+          "max_ms": 182.037908
+        },
+        "staged_evidence": {
+          "samples": 3,
+          "median_ms": 171.564448,
+          "p95_ms": 203.020042,
+          "min_ms": 149.136637,
+          "max_ms": 203.020042
+        },
+        "renamed_evidence": {
+          "samples": 3,
+          "median_ms": 142.382716,
+          "p95_ms": 147.902836,
+          "min_ms": 137.284611,
+          "max_ms": 147.902836
+        },
+        "deleted_evidence": {
+          "samples": 3,
+          "median_ms": 163.257046,
+          "p95_ms": 171.074016,
+          "min_ms": 145.986942,
+          "max_ms": 171.074016
+        },
+        "restored_evidence": {
+          "samples": 3,
+          "median_ms": 149.982465,
+          "p95_ms": 170.523347,
+          "min_ms": 148.806487,
+          "max_ms": 170.523347
+        },
+        "scope_addition": {
+          "samples": 3,
+          "median_ms": 374.648178,
+          "p95_ms": 375.61343,
+          "min_ms": 362.132755,
+          "max_ms": 375.61343
+        },
+        "unchanged_branch": {
+          "samples": 3,
+          "median_ms": 147.897141,
+          "p95_ms": 203.656115,
+          "min_ms": 147.095617,
+          "max_ms": 203.656115
+        },
+        "changed_branch": {
+          "samples": 3,
+          "median_ms": 162.357186,
+          "p95_ms": 234.394401,
+          "min_ms": 149.810087,
+          "max_ms": 234.394401
+        },
+        "branch_return": {
+          "samples": 3,
+          "median_ms": 151.269538,
+          "p95_ms": 254.630761,
+          "min_ms": 135.831651,
+          "max_ms": 254.630761
+        },
+        "feature_return": {
+          "samples": 3,
+          "median_ms": 142.298106,
+          "p95_ms": 147.985719,
+          "min_ms": 131.941115,
+          "max_ms": 147.985719
+        },
+        "worktree_isolation": {
+          "samples": 3,
+          "median_ms": 202.370069,
+          "p95_ms": 223.44647,
+          "min_ms": 178.302158,
+          "max_ms": 223.44647
+        }
+      },
+      "label": "baseline",
+      "trial": 1
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "plain",
+      "runs": 3,
+      "source_bytes": 16142640,
+      "learning_setup_ms": 112164.76145999997,
+      "storage_before": {
+        "database_allocated_bytes": 1388544,
+        "database_free_bytes": 0,
+        "database_budget_bytes": 268435456,
+        "effective_database_limit_bytes": 268435456,
+        "over_budget": false,
+        "files_on_disk": {
+          "cache.sqlite3": 1388544,
+          "cache.sqlite3-wal": 8272,
+          "cache.sqlite3-shm": 32768
+        },
+        "total_database_files_bytes": 1429584,
+        "note_revisions": 100,
+        "note_revision_limit": 2000,
+        "receipts": 0,
+        "receipt_limit": 128,
+        "scope": "Per checkout SQLite main database limit; WAL/SHM and compaction need extra space. An existing larger database cannot shrink until prune --compact.",
+        "controls": {
+          "skill": "on",
+          "cache": "on",
+          "current_branch": null,
+          "branch_kind": "non_git",
+          "branch": "on",
+          "branch_rule": "default",
+          "branch_default": "on",
+          "branch_overrides": {},
+          "effective_enabled": true,
+          "bypass_reasons": [],
+          "updated_at": null
+        }
+      },
+      "storage_after": {
+        "database_allocated_bytes": 1388544,
+        "database_free_bytes": 0,
+        "database_budget_bytes": 268435456,
+        "effective_database_limit_bytes": 268435456,
+        "over_budget": false,
+        "files_on_disk": {
+          "cache.sqlite3": 1388544,
+          "cache.sqlite3-wal": 8272,
+          "cache.sqlite3-shm": 32768
+        },
+        "total_database_files_bytes": 1429584,
+        "note_revisions": 101,
+        "note_revision_limit": 2000,
+        "receipts": 0,
+        "receipt_limit": 128,
+        "scope": "Per checkout SQLite main database limit; WAL/SHM and compaction need extra space. An existing larger database cannot shrink until prune --compact.",
+        "controls": {
+          "skill": "on",
+          "cache": "on",
+          "current_branch": null,
+          "branch_kind": "non_git",
+          "branch": "on",
+          "branch_rule": "default",
+          "branch_default": "on",
+          "branch_overrides": {},
+          "effective_enabled": true,
+          "bypass_reasons": [],
+          "updated_at": "2026-11-11T23:06:59+00:00"
+        }
+      },
+      "context_estimate": {
+        "estimated_note_tokens": 64,
+        "estimated_reduction_percent": 97.4,
+        "estimated_source_tokens": 2420,
+        "estimated_tokens_avoided": 2356,
+        "method": "Hypothetical full captured-source text versus compact note payload, ~4 chars/token. Not actual Copilot tokens, AIC, or whole-repository savings.",
+        "returned_note_chars": 256,
+        "source_chars": 9677,
+        "verified_source_files": 3
+      },
+      "checks_passed": [
+        "cold_scan",
+        "warm_hit",
+        "compact_hit",
+        "concurrent_readers_4",
+        "query_miss",
+        "budget_omission",
+        "warm_scan",
+        "full_scan",
+        "mode_off",
+        "cache_off",
+        "repository_isolation",
+        "unrelated_edit",
+        "dirty_evidence",
+        "renamed_evidence",
+        "deleted_evidence",
+        "restored_evidence",
+        "scope_addition"
+      ],
+      "raw": {
+        "cold_scan": {
+          "latency_ms": [
+            1548.248944
+          ],
+          "response_bytes": [
+            773
+          ]
+        },
+        "warm_hit": {
+          "latency_ms": [
+            361.905022,
+            276.869788,
+            336.063688
+          ],
+          "response_bytes": [
+            2386,
+            2386,
+            2386
+          ]
+        },
+        "compact_hit": {
+          "latency_ms": [
+            399.842862,
+            402.036421,
+            412.589273
+          ],
+          "response_bytes": [
+            825,
+            825,
+            825
+          ]
+        },
+        "concurrent_readers_4": {
+          "latency_ms": [
+            496.105017,
+            458.442468,
+            472.871481,
+            425.540305,
+            394.885113,
+            393.454832,
+            415.961613,
+            416.074923,
+            334.623412,
+            351.575646,
+            370.037438,
+            330.935405
+          ],
+          "response_bytes": [
+            2386,
+            2386,
+            2386,
+            2386,
+            2386,
+            2386,
+            2385,
+            2386,
+            2386,
+            2386,
+            2386,
+            2386
+          ]
+        },
+        "query_miss": {
+          "latency_ms": [
+            303.175928,
+            316.318835,
+            298.619028
+          ],
+          "response_bytes": [
+            1072,
+            1072,
+            1072
+          ]
+        },
+        "budget_omission": {
+          "latency_ms": [
+            266.208651,
+            372.434845,
+            290.872432
+          ],
+          "response_bytes": [
+            1072,
+            1071,
+            1072
+          ]
+        },
+        "warm_scan": {
+          "latency_ms": [
+            570.311968,
+            673.048676,
+            864.983847
+          ],
+          "response_bytes": [
+            771,
+            770,
+            771
+          ]
+        },
+        "full_scan": {
+          "latency_ms": [
+            1858.248133,
+            1623.06493,
+            1857.403195
+          ],
+          "response_bytes": [
+            771,
+            771,
+            771
+          ]
+        },
+        "mode_off": {
+          "latency_ms": [
+            118.773392,
+            69.755718,
+            75.257139
+          ],
+          "response_bytes": [
+            488,
+            488,
+            488
+          ]
+        },
+        "cache_off": {
+          "latency_ms": [
+            71.886902,
+            75.288734,
+            71.614481
+          ],
+          "response_bytes": [
+            488,
+            488,
+            488
+          ]
+        },
+        "repository_isolation": {
+          "latency_ms": [
+            71.685569,
+            100.239837,
+            77.467451
+          ],
+          "response_bytes": [
+            1066,
+            1066,
+            1066
+          ]
+        },
+        "unrelated_edit": {
+          "latency_ms": [
+            322.019453,
+            310.344783,
+            279.938012
+          ],
+          "response_bytes": [
+            2409,
+            2409,
+            2409
+          ]
+        },
+        "dirty_evidence": {
+          "latency_ms": [
+            331.91869,
+            336.942883,
+            314.805873
+          ],
+          "response_bytes": [
+            1289,
+            1289,
+            1289
+          ]
+        },
+        "renamed_evidence": {
+          "latency_ms": [
+            296.081391,
+            314.448773,
+            322.93312
+          ],
+          "response_bytes": [
+            1289,
+            1289,
+            1289
+          ]
+        },
+        "deleted_evidence": {
+          "latency_ms": [
+            346.950261,
+            328.753153,
+            374.672257
+          ],
+          "response_bytes": [
+            1289,
+            1289,
+            1289
+          ]
+        },
+        "restored_evidence": {
+          "latency_ms": [
+            355.883927,
+            347.887705,
+            307.075037
+          ],
+          "response_bytes": [
+            2409,
+            2409,
+            2409
+          ]
+        },
+        "scope_addition": {
+          "latency_ms": [
+            561.481325,
+            404.096287,
+            553.259284
+          ],
+          "response_bytes": [
+            1269,
+            1269,
+            1269
+          ]
+        }
+      },
+      "metrics": {
+        "cold_scan": {
+          "samples": 1,
+          "median_ms": 1548.248944,
+          "p95_ms": 1548.248944,
+          "min_ms": 1548.248944,
+          "max_ms": 1548.248944
+        },
+        "warm_hit": {
+          "samples": 3,
+          "median_ms": 336.063688,
+          "p95_ms": 361.905022,
+          "min_ms": 276.869788,
+          "max_ms": 361.905022
+        },
+        "compact_hit": {
+          "samples": 3,
+          "median_ms": 402.036421,
+          "p95_ms": 412.589273,
+          "min_ms": 399.842862,
+          "max_ms": 412.589273
+        },
+        "concurrent_readers_4": {
+          "samples": 12,
+          "median_ms": 405.423363,
+          "p95_ms": 496.105017,
+          "min_ms": 330.935405,
+          "max_ms": 496.105017
+        },
+        "query_miss": {
+          "samples": 3,
+          "median_ms": 303.175928,
+          "p95_ms": 316.318835,
+          "min_ms": 298.619028,
+          "max_ms": 316.318835
+        },
+        "budget_omission": {
+          "samples": 3,
+          "median_ms": 290.872432,
+          "p95_ms": 372.434845,
+          "min_ms": 266.208651,
+          "max_ms": 372.434845
+        },
+        "warm_scan": {
+          "samples": 3,
+          "median_ms": 673.048676,
+          "p95_ms": 864.983847,
+          "min_ms": 570.311968,
+          "max_ms": 864.983847
+        },
+        "full_scan": {
+          "samples": 3,
+          "median_ms": 1857.403195,
+          "p95_ms": 1858.248133,
+          "min_ms": 1623.06493,
+          "max_ms": 1858.248133
+        },
+        "mode_off": {
+          "samples": 3,
+          "median_ms": 75.257139,
+          "p95_ms": 118.773392,
+          "min_ms": 69.755718,
+          "max_ms": 118.773392
+        },
+        "cache_off": {
+          "samples": 3,
+          "median_ms": 71.886902,
+          "p95_ms": 75.288734,
+          "min_ms": 71.614481,
+          "max_ms": 75.288734
+        },
+        "repository_isolation": {
+          "samples": 3,
+          "median_ms": 77.467451,
+          "p95_ms": 100.239837,
+          "min_ms": 71.685569,
+          "max_ms": 100.239837
+        },
+        "unrelated_edit": {
+          "samples": 3,
+          "median_ms": 310.344783,
+          "p95_ms": 322.019453,
+          "min_ms": 279.938012,
+          "max_ms": 322.019453
+        },
+        "dirty_evidence": {
+          "samples": 3,
+          "median_ms": 331.91869,
+          "p95_ms": 336.942883,
+          "min_ms": 314.805873,
+          "max_ms": 336.942883
+        },
+        "renamed_evidence": {
+          "samples": 3,
+          "median_ms": 314.448773,
+          "p95_ms": 322.93312,
+          "min_ms": 296.081391,
+          "max_ms": 322.93312
+        },
+        "deleted_evidence": {
+          "samples": 3,
+          "median_ms": 346.950261,
+          "p95_ms": 374.672257,
+          "min_ms": 328.753153,
+          "max_ms": 374.672257
+        },
+        "restored_evidence": {
+          "samples": 3,
+          "median_ms": 347.887705,
+          "p95_ms": 355.883927,
+          "min_ms": 307.075037,
+          "max_ms": 355.883927
+        },
+        "scope_addition": {
+          "samples": 3,
+          "median_ms": 553.259284,
+          "p95_ms": 561.481325,
+          "min_ms": 404.096287,
+          "max_ms": 561.481325
+        }
+      },
+      "label": "candidate",
+      "trial": 1
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "plain",
+      "runs": 3,
+      "source_bytes": 16142640,
+      "learning_setup_ms": 103623.492967,
+      "storage_before": {
+        "database_allocated_bytes": 1388544,
+        "database_free_bytes": 0,
+        "database_budget_bytes": 268435456,
+        "effective_database_limit_bytes": 268435456,
+        "over_budget": false,
+        "files_on_disk": {
+          "cache.sqlite3": 1388544,
+          "cache.sqlite3-wal": 8272,
+          "cache.sqlite3-shm": 32768
+        },
+        "total_database_files_bytes": 1429584,
+        "note_revisions": 100,
+        "note_revision_limit": 2000,
+        "receipts": 0,
+        "receipt_limit": 128,
+        "scope": "Per checkout SQLite main database limit; WAL/SHM and compaction need extra space. An existing larger database cannot shrink until prune --compact.",
+        "controls": {
+          "skill": "on",
+          "cache": "on",
+          "current_branch": null,
+          "branch_kind": "non_git",
+          "branch": "on",
+          "branch_rule": "default",
+          "branch_default": "on",
+          "branch_overrides": {},
+          "effective_enabled": true,
+          "bypass_reasons": [],
+          "updated_at": null
+        }
+      },
+      "storage_after": {
+        "database_allocated_bytes": 1388544,
+        "database_free_bytes": 0,
+        "database_budget_bytes": 268435456,
+        "effective_database_limit_bytes": 268435456,
+        "over_budget": false,
+        "files_on_disk": {
+          "cache.sqlite3": 1388544,
+          "cache.sqlite3-wal": 8272,
+          "cache.sqlite3-shm": 32768
+        },
+        "total_database_files_bytes": 1429584,
+        "note_revisions": 101,
+        "note_revision_limit": 2000,
+        "receipts": 0,
+        "receipt_limit": 128,
+        "scope": "Per checkout SQLite main database limit; WAL/SHM and compaction need extra space. An existing larger database cannot shrink until prune --compact.",
+        "controls": {
+          "skill": "on",
+          "cache": "on",
+          "current_branch": null,
+          "branch_kind": "non_git",
+          "branch": "on",
+          "branch_rule": "default",
+          "branch_default": "on",
+          "branch_overrides": {},
+          "effective_enabled": true,
+          "bypass_reasons": [],
+          "updated_at": "2026-11-11T23:09:05+00:00"
+        }
+      },
+      "context_estimate": {
+        "estimated_note_tokens": 64,
+        "estimated_reduction_percent": 97.4,
+        "estimated_source_tokens": 2420,
+        "estimated_tokens_avoided": 2356,
+        "method": "Hypothetical full captured-source text versus compact note payload, ~4 chars/token. Not actual Copilot tokens, AIC, or whole-repository savings.",
+        "returned_note_chars": 256,
+        "source_chars": 9677,
+        "verified_source_files": 3
+      },
+      "checks_passed": [
+        "cold_scan",
+        "warm_hit",
+        "compact_hit",
+        "concurrent_readers_4",
+        "query_miss",
+        "budget_omission",
+        "warm_scan",
+        "full_scan",
+        "mode_off",
+        "cache_off",
+        "repository_isolation",
+        "unrelated_edit",
+        "dirty_evidence",
+        "renamed_evidence",
+        "deleted_evidence",
+        "restored_evidence",
+        "scope_addition"
+      ],
+      "raw": {
+        "cold_scan": {
+          "latency_ms": [
+            1668.399323
+          ],
+          "response_bytes": [
+            774
+          ]
+        },
+        "warm_hit": {
+          "latency_ms": [
+            267.07276,
+            304.048174,
+            284.308933
+          ],
+          "response_bytes": [
+            2386,
+            2386,
+            2386
+          ]
+        },
+        "compact_hit": {
+          "latency_ms": [
+            356.883552,
+            323.296147,
+            312.799472
+          ],
+          "response_bytes": [
+            825,
+            825,
+            825
+          ]
+        },
+        "concurrent_readers_4": {
+          "latency_ms": [
+            417.484919,
+            326.169543,
+            402.484449,
+            372.307371,
+            308.723387,
+            321.379669,
+            298.923342,
+            326.933654,
+            320.446029,
+            382.581427,
+            378.906248,
+            340.393578
+          ],
+          "response_bytes": [
+            2386,
+            2386,
+            2386,
+            2386,
+            2386,
+            2386,
+            2385,
+            2386,
+            2386,
+            2386,
+            2386,
+            2386
+          ]
+        },
+        "query_miss": {
+          "latency_ms": [
+            295.493218,
+            304.493086,
+            300.770962
+          ],
+          "response_bytes": [
+            1071,
+            1071,
+            1072
+          ]
+        },
+        "budget_omission": {
+          "latency_ms": [
+            266.94206,
+            303.624186,
+            284.191068
+          ],
+          "response_bytes": [
+            1071,
+            1072,
+            1072
+          ]
+        },
+        "warm_scan": {
+          "latency_ms": [
+            521.765855,
+            492.402003,
+            537.005153
+          ],
+          "response_bytes": [
+            771,
+            771,
+            770
+          ]
+        },
+        "full_scan": {
+          "latency_ms": [
+            1493.137763,
+            1518.936156,
+            1573.273618
+          ],
+          "response_bytes": [
+            771,
+            771,
+            771
+          ]
+        },
+        "mode_off": {
+          "latency_ms": [
+            82.854503,
+            77.234853,
+            82.767379
+          ],
+          "response_bytes": [
+            488,
+            488,
+            488
+          ]
+        },
+        "cache_off": {
+          "latency_ms": [
+            67.281561,
+            75.793526,
+            69.330348
+          ],
+          "response_bytes": [
+            488,
+            488,
+            488
+          ]
+        },
+        "repository_isolation": {
+          "latency_ms": [
+            79.202505,
+            71.712561,
+            77.797371
+          ],
+          "response_bytes": [
+            1065,
+            1065,
+            1066
+          ]
+        },
+        "unrelated_edit": {
+          "latency_ms": [
+            281.739885,
+            270.662418,
+            317.688924
+          ],
+          "response_bytes": [
+            2409,
+            2409,
+            2409
+          ]
+        },
+        "dirty_evidence": {
+          "latency_ms": [
+            276.336482,
+            256.772052,
+            291.744255
+          ],
+          "response_bytes": [
+            1289,
+            1288,
+            1289
+          ]
+        },
+        "renamed_evidence": {
+          "latency_ms": [
+            259.116561,
+            261.284204,
+            279.538686
+          ],
+          "response_bytes": [
+            1289,
+            1289,
+            1289
+          ]
+        },
+        "deleted_evidence": {
+          "latency_ms": [
+            357.461371,
+            260.702169,
+            271.132082
+          ],
+          "response_bytes": [
+            1289,
+            1289,
+            1288
+          ]
+        },
+        "restored_evidence": {
+          "latency_ms": [
+            271.192518,
+            318.303066,
+            305.888538
+          ],
+          "response_bytes": [
+            2409,
+            2409,
+            2409
+          ]
+        },
+        "scope_addition": {
+          "latency_ms": [
+            442.082254,
+            439.240435,
+            459.465485
+          ],
+          "response_bytes": [
+            1269,
+            1268,
+            1269
+          ]
+        }
+      },
+      "metrics": {
+        "cold_scan": {
+          "samples": 1,
+          "median_ms": 1668.399323,
+          "p95_ms": 1668.399323,
+          "min_ms": 1668.399323,
+          "max_ms": 1668.399323
+        },
+        "warm_hit": {
+          "samples": 3,
+          "median_ms": 284.308933,
+          "p95_ms": 304.048174,
+          "min_ms": 267.07276,
+          "max_ms": 304.048174
+        },
+        "compact_hit": {
+          "samples": 3,
+          "median_ms": 323.296147,
+          "p95_ms": 356.883552,
+          "min_ms": 312.799472,
+          "max_ms": 356.883552
+        },
+        "concurrent_readers_4": {
+          "samples": 12,
+          "median_ms": 333.663616,
+          "p95_ms": 417.484919,
+          "min_ms": 298.923342,
+          "max_ms": 417.484919
+        },
+        "query_miss": {
+          "samples": 3,
+          "median_ms": 300.770962,
+          "p95_ms": 304.493086,
+          "min_ms": 295.493218,
+          "max_ms": 304.493086
+        },
+        "budget_omission": {
+          "samples": 3,
+          "median_ms": 284.191068,
+          "p95_ms": 303.624186,
+          "min_ms": 266.94206,
+          "max_ms": 303.624186
+        },
+        "warm_scan": {
+          "samples": 3,
+          "median_ms": 521.765855,
+          "p95_ms": 537.005153,
+          "min_ms": 492.402003,
+          "max_ms": 537.005153
+        },
+        "full_scan": {
+          "samples": 3,
+          "median_ms": 1518.936156,
+          "p95_ms": 1573.273618,
+          "min_ms": 1493.137763,
+          "max_ms": 1573.273618
+        },
+        "mode_off": {
+          "samples": 3,
+          "median_ms": 82.767379,
+          "p95_ms": 82.854503,
+          "min_ms": 77.234853,
+          "max_ms": 82.854503
+        },
+        "cache_off": {
+          "samples": 3,
+          "median_ms": 69.330348,
+          "p95_ms": 75.793526,
+          "min_ms": 67.281561,
+          "max_ms": 75.793526
+        },
+        "repository_isolation": {
+          "samples": 3,
+          "median_ms": 77.797371,
+          "p95_ms": 79.202505,
+          "min_ms": 71.712561,
+          "max_ms": 79.202505
+        },
+        "unrelated_edit": {
+          "samples": 3,
+          "median_ms": 281.739885,
+          "p95_ms": 317.688924,
+          "min_ms": 270.662418,
+          "max_ms": 317.688924
+        },
+        "dirty_evidence": {
+          "samples": 3,
+          "median_ms": 276.336482,
+          "p95_ms": 291.744255,
+          "min_ms": 256.772052,
+          "max_ms": 291.744255
+        },
+        "renamed_evidence": {
+          "samples": 3,
+          "median_ms": 261.284204,
+          "p95_ms": 279.538686,
+          "min_ms": 259.116561,
+          "max_ms": 279.538686
+        },
+        "deleted_evidence": {
+          "samples": 3,
+          "median_ms": 271.132082,
+          "p95_ms": 357.461371,
+          "min_ms": 260.702169,
+          "max_ms": 357.461371
+        },
+        "restored_evidence": {
+          "samples": 3,
+          "median_ms": 305.888538,
+          "p95_ms": 318.303066,
+          "min_ms": 271.192518,
+          "max_ms": 318.303066
+        },
+        "scope_addition": {
+          "samples": 3,
+          "median_ms": 442.082254,
+          "p95_ms": 459.465485,
+          "min_ms": 439.240435,
+          "max_ms": 459.465485
+        }
+      },
+      "label": "baseline",
+      "trial": 1
+    }
+  ],
+  "comparisons": [
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "cold_scan",
+      "baseline_ms": 432.669175,
+      "candidate_ms": 372.631283,
+      "change_percent": -13.876165779547389,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "warm_hit",
+      "baseline_ms": 119.649812,
+      "candidate_ms": 189.247513,
+      "change_percent": 58.1678314713942,
+      "regression": true
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "compact_hit",
+      "baseline_ms": 134.914767,
+      "candidate_ms": 163.816151,
+      "change_percent": 21.42195746444863,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "concurrent_readers_4",
+      "baseline_ms": 150.4593255,
+      "candidate_ms": 180.26931000000002,
+      "change_percent": 19.81265328748268,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "query_miss",
+      "baseline_ms": 143.891077,
+      "candidate_ms": 204.116733,
+      "change_percent": 41.855031775180905,
+      "regression": true
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "budget_omission",
+      "baseline_ms": 118.840385,
+      "candidate_ms": 162.101062,
+      "change_percent": 36.40233662992594,
+      "regression": true
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "warm_scan",
+      "baseline_ms": 177.136529,
+      "candidate_ms": 273.293111,
+      "change_percent": 54.283880655694695,
+      "regression": true
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "full_scan",
+      "baseline_ms": 369.805066,
+      "candidate_ms": 446.288543,
+      "change_percent": 20.682106339776315,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "mode_off",
+      "baseline_ms": 72.874952,
+      "candidate_ms": 102.543716,
+      "change_percent": 40.71188136082753,
+      "regression": true
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "cache_off",
+      "baseline_ms": 80.583792,
+      "candidate_ms": 108.688145,
+      "change_percent": 34.875937583081225,
+      "regression": true
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "branch_off",
+      "baseline_ms": 83.654526,
+      "candidate_ms": 80.166893,
+      "change_percent": -4.169090623978914,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "repository_isolation",
+      "baseline_ms": 83.167903,
+      "candidate_ms": 105.529464,
+      "change_percent": 26.887248798373587,
+      "regression": true
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "unrelated_edit",
+      "baseline_ms": 145.246739,
+      "candidate_ms": 142.958053,
+      "change_percent": -1.5757228119248752,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "dirty_evidence",
+      "baseline_ms": 122.963693,
+      "candidate_ms": 149.205042,
+      "change_percent": 21.340729413518822,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "staged_evidence",
+      "baseline_ms": 100.669944,
+      "candidate_ms": 153.215369,
+      "change_percent": 52.19574275316971,
+      "regression": true
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "renamed_evidence",
+      "baseline_ms": 111.346491,
+      "candidate_ms": 127.640936,
+      "change_percent": 14.633999557291839,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "deleted_evidence",
+      "baseline_ms": 113.563089,
+      "candidate_ms": 110.323378,
+      "change_percent": -2.8527852038262185,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "restored_evidence",
+      "baseline_ms": 114.450809,
+      "candidate_ms": 117.694552,
+      "change_percent": 2.8341809274585334,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "scope_addition",
+      "baseline_ms": 158.306191,
+      "candidate_ms": 160.707474,
+      "change_percent": 1.5168598175670702,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "unchanged_branch",
+      "baseline_ms": 101.695299,
+      "candidate_ms": 118.269747,
+      "change_percent": 16.29814569894719,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "changed_branch",
+      "baseline_ms": 114.744559,
+      "candidate_ms": 115.66968,
+      "change_percent": 0.8062438934468381,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "branch_return",
+      "baseline_ms": 113.60636,
+      "candidate_ms": 107.190285,
+      "change_percent": -5.647637156933812,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "feature_return",
+      "baseline_ms": 123.64207,
+      "candidate_ms": 106.572475,
+      "change_percent": -13.805652881741631,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "worktree_isolation",
+      "baseline_ms": 124.873845,
+      "candidate_ms": 142.787601,
+      "change_percent": 14.345482835096485,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "cold_scan",
+      "baseline_ms": 458.146756,
+      "candidate_ms": 334.400416,
+      "change_percent": -27.010196706489392,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "warm_hit",
+      "baseline_ms": 117.499329,
+      "candidate_ms": 120.957151,
+      "change_percent": 2.9428440395604243,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "compact_hit",
+      "baseline_ms": 116.163472,
+      "candidate_ms": 114.686243,
+      "change_percent": -1.2716811701358188,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "concurrent_readers_4",
+      "baseline_ms": 171.088627,
+      "candidate_ms": 137.1443805,
+      "change_percent": -19.840153664918937,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "query_miss",
+      "baseline_ms": 125.948949,
+      "candidate_ms": 110.633476,
+      "change_percent": -12.160064154247129,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "budget_omission",
+      "baseline_ms": 126.216232,
+      "candidate_ms": 117.290755,
+      "change_percent": -7.07157618205557,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "warm_scan",
+      "baseline_ms": 159.588,
+      "candidate_ms": 166.242319,
+      "change_percent": 4.169686317266972,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "full_scan",
+      "baseline_ms": 332.39107,
+      "candidate_ms": 378.18477,
+      "change_percent": 13.777054840853575,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "mode_off",
+      "baseline_ms": 85.396121,
+      "candidate_ms": 70.027686,
+      "change_percent": -17.996642962272247,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "cache_off",
+      "baseline_ms": 73.270178,
+      "candidate_ms": 68.32841,
+      "change_percent": -6.74458304168443,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "repository_isolation",
+      "baseline_ms": 83.655946,
+      "candidate_ms": 83.451044,
+      "change_percent": -0.24493417359718117,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "unrelated_edit",
+      "baseline_ms": 128.200703,
+      "candidate_ms": 126.782892,
+      "change_percent": -1.1059307529694282,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "dirty_evidence",
+      "baseline_ms": 123.581208,
+      "candidate_ms": 149.112157,
+      "change_percent": 20.65924861326812,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "renamed_evidence",
+      "baseline_ms": 141.459685,
+      "candidate_ms": 127.264505,
+      "change_percent": -10.03478835683821,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "deleted_evidence",
+      "baseline_ms": 119.579114,
+      "candidate_ms": 131.356857,
+      "change_percent": 9.849331213475947,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "restored_evidence",
+      "baseline_ms": 120.975445,
+      "candidate_ms": 114.568492,
+      "change_percent": -5.2960772328632375,
+      "regression": false
+    },
+    {
+      "files": 1000,
+      "notes": 20,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "scope_addition",
+      "baseline_ms": 159.222248,
+      "candidate_ms": 151.333537,
+      "change_percent": -4.954528088310875,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "cold_scan",
+      "baseline_ms": 1342.652193,
+      "candidate_ms": 1397.014115,
+      "change_percent": 4.048846177991537,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "warm_hit",
+      "baseline_ms": 138.971224,
+      "candidate_ms": 306.40533,
+      "change_percent": 120.481133561866,
+      "regression": true
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "compact_hit",
+      "baseline_ms": 190.449759,
+      "candidate_ms": 255.044723,
+      "change_percent": 33.9170626096723,
+      "regression": true
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "concurrent_readers_4",
+      "baseline_ms": 181.4023245,
+      "candidate_ms": 338.380855,
+      "change_percent": 86.53611850492027,
+      "regression": true
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "query_miss",
+      "baseline_ms": 167.397283,
+      "candidate_ms": 280.744295,
+      "change_percent": 67.71138095473152,
+      "regression": true
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "budget_omission",
+      "baseline_ms": 188.615663,
+      "candidate_ms": 280.405221,
+      "change_percent": 48.664865123104846,
+      "regression": true
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "warm_scan",
+      "baseline_ms": 486.777862,
+      "candidate_ms": 596.821504,
+      "change_percent": 22.606542037032895,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "full_scan",
+      "baseline_ms": 1550.888831,
+      "candidate_ms": 1591.787522,
+      "change_percent": 2.637113001428282,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "mode_off",
+      "baseline_ms": 98.335763,
+      "candidate_ms": 121.638533,
+      "change_percent": 23.697146683043478,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "cache_off",
+      "baseline_ms": 106.36244,
+      "candidate_ms": 111.160583,
+      "change_percent": 4.511125355905708,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "branch_off",
+      "baseline_ms": 82.290177,
+      "candidate_ms": 114.763325,
+      "change_percent": 39.46175495527248,
+      "regression": true
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "repository_isolation",
+      "baseline_ms": 83.688505,
+      "candidate_ms": 115.580499,
+      "change_percent": 38.107974326940116,
+      "regression": true
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "unrelated_edit",
+      "baseline_ms": 153.528939,
+      "candidate_ms": 343.471737,
+      "change_percent": 123.71791223021478,
+      "regression": true
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "dirty_evidence",
+      "baseline_ms": 128.82265,
+      "candidate_ms": 196.376491,
+      "change_percent": 52.439412634346496,
+      "regression": true
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "staged_evidence",
+      "baseline_ms": 171.564448,
+      "candidate_ms": 211.638003,
+      "change_percent": 23.35772677099162,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "renamed_evidence",
+      "baseline_ms": 142.382716,
+      "candidate_ms": 244.106574,
+      "change_percent": 71.4439651509387,
+      "regression": true
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "deleted_evidence",
+      "baseline_ms": 163.257046,
+      "candidate_ms": 207.429578,
+      "change_percent": 27.057044753829487,
+      "regression": true
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "restored_evidence",
+      "baseline_ms": 149.982465,
+      "candidate_ms": 186.895601,
+      "change_percent": 24.611634433398606,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "scope_addition",
+      "baseline_ms": 374.648178,
+      "candidate_ms": 378.508864,
+      "change_percent": 1.0304830576274802,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "unchanged_branch",
+      "baseline_ms": 147.897141,
+      "candidate_ms": 166.614894,
+      "change_percent": 12.655926188593455,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "changed_branch",
+      "baseline_ms": 162.357186,
+      "candidate_ms": 181.406533,
+      "change_percent": 11.732986675440397,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "branch_return",
+      "baseline_ms": 151.269538,
+      "candidate_ms": 176.679918,
+      "change_percent": 16.798081316279273,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "feature_return",
+      "baseline_ms": 142.298106,
+      "candidate_ms": 171.981293,
+      "change_percent": 20.859860917614746,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "git",
+      "trial": 1,
+      "scenario": "worktree_isolation",
+      "baseline_ms": 202.370069,
+      "candidate_ms": 256.846265,
+      "change_percent": 26.919097408619265,
+      "regression": true
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "cold_scan",
+      "baseline_ms": 1668.399323,
+      "candidate_ms": 1548.248944,
+      "change_percent": -7.201536067753496,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "warm_hit",
+      "baseline_ms": 284.308933,
+      "candidate_ms": 336.063688,
+      "change_percent": 18.203703434109116,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "compact_hit",
+      "baseline_ms": 323.296147,
+      "candidate_ms": 402.036421,
+      "change_percent": 24.355463166098293,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "concurrent_readers_4",
+      "baseline_ms": 333.663616,
+      "candidate_ms": 405.423363,
+      "change_percent": 21.506614314219988,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "query_miss",
+      "baseline_ms": 300.770962,
+      "candidate_ms": 303.175928,
+      "change_percent": 0.7996004614301835,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "budget_omission",
+      "baseline_ms": 284.191068,
+      "candidate_ms": 290.872432,
+      "change_percent": 2.3510112569758985,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "warm_scan",
+      "baseline_ms": 521.765855,
+      "candidate_ms": 673.048676,
+      "change_percent": 28.994388871997,
+      "regression": true
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "full_scan",
+      "baseline_ms": 1518.936156,
+      "candidate_ms": 1857.403195,
+      "change_percent": 22.283164283305144,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "mode_off",
+      "baseline_ms": 82.767379,
+      "candidate_ms": 75.257139,
+      "change_percent": -9.073913044896601,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "cache_off",
+      "baseline_ms": 69.330348,
+      "candidate_ms": 71.886902,
+      "change_percent": 3.687496275080006,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "repository_isolation",
+      "baseline_ms": 77.797371,
+      "candidate_ms": 77.467451,
+      "change_percent": -0.42407602693926677,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "unrelated_edit",
+      "baseline_ms": 281.739885,
+      "candidate_ms": 310.344783,
+      "change_percent": 10.152945863522303,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "dirty_evidence",
+      "baseline_ms": 276.336482,
+      "candidate_ms": 331.91869,
+      "change_percent": 20.113959473508835,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "renamed_evidence",
+      "baseline_ms": 261.284204,
+      "candidate_ms": 314.448773,
+      "change_percent": 20.347410285851048,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "deleted_evidence",
+      "baseline_ms": 271.132082,
+      "candidate_ms": 346.950261,
+      "change_percent": 27.963558735185007,
+      "regression": true
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "restored_evidence",
+      "baseline_ms": 305.888538,
+      "candidate_ms": 347.887705,
+      "change_percent": 13.73021927353159,
+      "regression": false
+    },
+    {
+      "files": 5000,
+      "notes": 100,
+      "repository": "plain",
+      "trial": 1,
+      "scenario": "scope_addition",
+      "baseline_ms": 442.082254,
+      "candidate_ms": 553.259284,
+      "change_percent": 25.148494198547947,
+      "regression": true
+    }
+  ],
+  "complete": true
+}
