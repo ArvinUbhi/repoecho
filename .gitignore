@@ -8,3 +8,4 @@ usage-study.csv
 node_modules/
 /skill/
 *.tgz
+/benchmark-results/

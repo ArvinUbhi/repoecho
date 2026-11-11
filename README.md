@@ -12,7 +12,7 @@ You need **GitHub Copilot CLI** and [uv](https://docs.astral.sh/uv/getting-start
 
 ### npm installation (release 1.6.0)
 
-Requires Node.js 22+ and npm in addition to the prerequisites above. npm accepted version 1.6.0 for public publication on 11 November 2026. Initial registry processing may delay availability; if npm returns E404, use the ZIP option below or the tested tarball from GitHub Actions and retry later.
+Requires Node.js 22+ and npm in addition to the prerequisites above. [RepoEcho 1.6.0 is available on npm](https://www.npmjs.com/package/repoecho).
 
 Install your team's approved version:
 
@@ -407,3 +407,15 @@ Created for **Arvin Ubhi**.
 ## License and releases
 
 [MIT](LICENSE), copyright 2026 Arvin Ubhi. See [release publishing](docs/publishing.md), [security reporting](SECURITY.md) and the [changelog](CHANGELOG.md).
+
+## Team benchmarks and comparison reports
+
+[Read the benchmark guide](docs/benchmarking.md) or open [published CI reports](https://github.com/ArvinUbhi/repoecho/actions/workflows/benchmarks.yml). Windows, macOS and Linux runs compare the current engine against the pinned 1.6.0 baseline, with raw timings, storage metrics and branch/cache correctness checks. Weekly runs reach 20,000 files.
+
+From the downloaded source directory:
+
+```powershell
+uv run --no-project --python 3.12 tools/benchmark_suite.py --profile team --runs 10 --trials 2
+```
+
+Open `benchmark-results/report.html`. For measured Copilot token savings, use the separate paired-session CSV study described in the guide; synthetic helper speed is not model token savings.

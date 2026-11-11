@@ -2,6 +2,12 @@
 
 RepoEcho uses `MAJOR.MINOR.PATCH` versions. Major changes can break compatibility, minor changes add behaviour, and patches fix issues. `repoecho --version` shows the installed version. Each entry below names the change and links its commit on `main`.
 
+## Unreleased — benchmark tooling
+
+- Add reproducible Git/plain repository benchmark profiles up to 20,000 files, repeated raw measurements, concurrent readers, evidence invalidation, branch revision reuse and checkout isolation assertions.
+- Publish paired baseline comparisons and JSON/CSV/Markdown/HTML reports from Windows, macOS and Linux CI, with weekly large runs and manual profile/baseline selection.
+- Add validated paired real-agent study summaries with measured token totals, quality exclusions, negative savings and cold-learning break-even estimates. No runtime/cache format changes or npm update are required.
+
 ## 1.6.0 — 11 November 2026
 
 - Add dependency-free npm distribution with native Windows/POSIX command shims, bundled Copilot skill and explicit setup. Installation supports disabled lifecycle scripts and offline tarballs.

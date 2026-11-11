@@ -1,0 +1,70 @@
+name: Benchmarks
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '23 4 * * 1'
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'Fixture sizes (large reaches 20,000 files)'
+        type: choice
+        options: [smoke, team, large]
+        default: team
+      baseline:
+        description: 'Approved baseline commit from this repository'
+        default: cfeb48008c78e42190ae31e6fe1c971b6a28ae17
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: benchmarks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  benchmark:
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          path: candidate
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.baseline || 'cfeb48008c78e42190ae31e6fe1c971b6a28ae17' }}
+          path: baseline
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run paired benchmark suite
+        shell: bash
+        env:
+          PROFILE: ${{ inputs.profile || (github.event_name == 'schedule' && 'large') || 'smoke' }}
+        run: |
+          python candidate/tools/benchmark_suite.py --profile "$PROFILE" --runs 10 --trials 2 --baseline-helper baseline/.github/skills/repoecho/scripts/repoecho.py --output results
+      - name: Publish job summary and provenance
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os, pathlib, subprocess
+          out = pathlib.Path('results'); out.mkdir(exist_ok=True)
+          provenance = {name: subprocess.check_output(['git', '-C', name, 'rev-parse', 'HEAD'], text=True).strip() for name in ['candidate', 'baseline']}
+          provenance.update(run_id=os.environ['GITHUB_RUN_ID'], runner=os.environ['RUNNER_OS'])
+          (out / 'provenance.json').write_text(json.dumps(provenance, indent=2), encoding='utf-8')
+          report = out / 'report.md'
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as stream:
+              stream.write(report.read_text(encoding='utf-8') if report.exists() else 'Benchmark failed. Inspect logs and failure.json; no successful comparison is claimed.')
+          PY
+      - name: Publish downloadable reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: benchmark-${{ matrix.os }}-${{ github.run_id }}
+          path: results/
+          retention-days: 90
+          if-no-files-found: error
