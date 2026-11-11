@@ -239,7 +239,7 @@ def write_reports(report, output):
             for scenario, values in r['raw'].items():
                 for i, (ms, size) in enumerate(zip(values['latency_ms'], values['response_bytes'])):
                     writer.writerow([r['label'], r['trial'], r['files'], r['notes'], r['repository'], scenario, i + 1, ms, size])
-    lines = ['# RepoEcho benchmark report', '', f"Generated: {report['created_at']}", '',
+    lines = ['# RepoEcho benchmark report', '', 'Status: ' + ('complete' if report.get('complete') else 'PARTIAL — not all fixtures completed'), '', f"Generated: {report['created_at']}", '',
              f"Environment: {report['environment']['system']} / Python {report['environment']['python']}", '',
              'Synthetic helper timings include Python process startup and Git. No LLM calls, actual token savings, AIC or thinking-time measurements. Cold scan means an empty RepoEcho cache, not cold OS disk caches.', '',
              '## Measured scenarios', '', '| Build | Trial | Files | Repo | Scenario | N | Median ms | p95 ms |',
@@ -309,7 +309,7 @@ def main(argv=None):
                               'git': subprocess.check_output(['git', '--version'], text=True).strip()},
               'profile': args.profile, 'thresholds': {'percent': args.regression_percent, 'ms': args.regression_ms},
               'engines': {k: {'sha256': hashlib.sha256(p.read_bytes()).hexdigest()} for k, p in engines.items()},
-              'results': []}
+              'complete': False, 'results': []}
     args.output.mkdir(parents=True, exist_ok=True)
     for name in ['report.json', 'report.md', 'report.html', 'samples.csv', 'failure.json']:
         (args.output / name).unlink(missing_ok=True)
@@ -323,6 +323,9 @@ def main(argv=None):
                         result = fixture(engines[label], files, notes, args.runs, plain)
                         result.update(label=label, trial=trial)
                         report['results'].append(result)
+                        report['comparisons'] = comparisons(report['results'], args.regression_percent, args.regression_ms)
+                        write_reports(report, args.output)
+        report['complete'] = True
         report['comparisons'] = comparisons(report['results'], args.regression_percent, args.regression_ms)
         write_reports(report, args.output)
     except Exception as error:

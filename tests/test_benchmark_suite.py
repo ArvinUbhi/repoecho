@@ -37,6 +37,7 @@ class BenchmarkTests(unittest.TestCase):
                                      '--output', temp], capture_output=True, text=True, timeout=180)
             self.assertEqual(result.returncode, 0, result.stderr)
             report = json.loads((Path(temp) / 'report.json').read_text())
+            self.assertTrue(report['complete'])
             git, plain = report['results']
             self.assertIn('worktree_isolation', git['checks_passed'])
             self.assertIn('scope_addition', plain['checks_passed'])
@@ -45,6 +46,14 @@ class BenchmarkTests(unittest.TestCase):
             self.assertEqual(len(git['raw']['warm_hit']['latency_ms']), 1)
             self.assertTrue((Path(temp) / 'samples.csv').is_file())
             self.assertIn('No baseline supplied', (Path(temp) / 'report.md').read_text())
+
+    def test_partial_report_is_explicit(self):
+        with tempfile.TemporaryDirectory() as temp:
+            report = {'created_at': 'test', 'environment': {'system': 'test', 'python': 'test'},
+                      'results': [], 'comparisons': [], 'complete': False}
+            SUITE.write_reports(report, Path(temp))
+            self.assertIn('PARTIAL', (Path(temp) / 'report.md').read_text())
+            self.assertFalse(json.loads((Path(temp) / 'report.json').read_text())['complete'])
 
     def test_failure_is_not_reported_as_success(self):
         with tempfile.TemporaryDirectory() as temp:

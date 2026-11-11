@@ -12,6 +12,8 @@ Open [GitHub Actions → Benchmarks](https://github.com/ArvinUbhi/repoecho/actio
 - `provenance.json`: exact candidate/baseline Git commits and workflow run.
 - `failure.json`: a failed correctness check; this is not a successful benchmark.
 
+Long runs checkpoint reports after each fixture. Check `complete` in JSON or the report status: a partial report does not certify the whole profile. Each CI job has a three-hour upper limit for large fixtures; smaller profiles normally finish much sooner.
+
 Reports run on Windows, macOS and Linux for every main push and pull request. A weekly run exercises the large profile. Use **Run workflow** to select smoke, team or large and an approved baseline commit. Artifacts are retained for 90 days; archive approved results internally for longer retention. Reports are public because this repository is public. CI generates synthetic fixtures only and uploads no application source or caches.
 
 The default baseline is the tested 1.6.0 release commit, `cfeb48008c78e42190ae31e6fe1c971b6a28ae17`. Both versions run with the same current benchmark harness on the same runner. Initial comparisons against an unchanged engine establish noise; they are not a claim of improvement.
