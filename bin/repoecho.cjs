@@ -1,0 +1,3 @@
+#!/usr/bin/env node
+'use strict';
+process.exitCode = require('../lib/launcher.cjs').main(process.argv.slice(2));

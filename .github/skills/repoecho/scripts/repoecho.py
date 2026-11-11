@@ -27,7 +27,7 @@ import tempfile
 import time
 import uuid
 
-VERSION = "1.5.1"
+VERSION = "1.6.0"
 # Bump only when evidence semantics become incompatible, never for a release.
 CACHE_COMPATIBILITY = 1
 SCHEMA = "1"

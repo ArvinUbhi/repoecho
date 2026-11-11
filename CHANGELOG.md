@@ -2,6 +2,13 @@
 
 RepoEcho uses `MAJOR.MINOR.PATCH` versions. Major changes can break compatibility, minor changes add behaviour, and patches fix issues. `repoecho --version` shows the installed version. Each entry below names the change and links its commit on `main`.
 
+## 1.6.0 — 11 November 2026
+
+- Add dependency-free npm distribution with native Windows/POSIX command shims, bundled Copilot skill and explicit setup. Installation supports disabled lifecycle scripts and offline tarballs.
+- Add MIT licensing to the repository and installed skill; document corporate registry, CA, runtime and update configuration.
+- Keep npm updates separate from ZIP updates and avoid competing PATH launchers. Support an explicit approved Python executable.
+- Test argument safety, runtime errors, package contents, offline installation, PATH shims and repeated setup. Add cross-platform npm CI and a gated provenance publishing workflow. (This release commit; npm publication requires maintainer authentication.)
+
 ## 1.5.1 — 5 November 2026
 
 - Fix the Windows lock-initialisation race exposed by concurrent installer CI: acquire the byte-range lock without a pre-lock sentinel write. Add an empty-file concurrent-writer regression test. (This release commit.)

@@ -2,6 +2,7 @@ name: Tests
 on:
   push:
   pull_request:
+  workflow_call:
 permissions:
   contents: read
 jobs:
@@ -29,3 +30,30 @@ jobs:
           sh -c 'exit 0'
       - name: Run behavioral tests
         run: python -m unittest discover -s tests -v
+  npm:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: ['22', '24']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: ${{ matrix.node }}
+          package-manager-cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm test
+      - run: npm run check:release
+      - if: matrix.os == 'ubuntu-latest' && matrix.node == '24'
+        run: npm pack
+      - if: matrix.os == 'ubuntu-latest' && matrix.node == '24'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: npm-package
+          path: repoecho-*.tgz
+          if-no-files-found: error

@@ -1,0 +1,21 @@
+{
+  "name": "repoecho",
+  "version": "1.6.0",
+  "description": "Verified, branch-aware repository memory for GitHub Copilot CLI",
+  "license": "MIT",
+  "author": "Arvin Ubhi",
+  "repository": { "type": "git", "url": "git+https://github.com/ArvinUbhi/repoecho.git" },
+  "homepage": "https://github.com/ArvinUbhi/repoecho#readme",
+  "bugs": { "url": "https://github.com/ArvinUbhi/repoecho/issues" },
+  "keywords": ["copilot", "cli", "git", "repository", "cache", "agent", "skills"],
+  "engines": { "node": ">=22" },
+  "bin": { "repoecho": "bin/repoecho.cjs" },
+  "files": ["bin/repoecho.cjs", "lib/launcher.cjs", "skill/", "LICENSE", "README.md", "CHANGELOG.md", "SECURITY.md", "docs/"],
+  "scripts": {
+    "build": "node scripts/build-package.cjs",
+    "prepack": "npm run build",
+    "test": "node --test tests/npm/launcher.test.cjs && node tests/npm/package-smoke.cjs",
+    "check:release": "node scripts/check-release.cjs"
+  },
+  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/" }
+}

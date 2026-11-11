@@ -10,6 +10,24 @@ The aim is less repeated exploration and more focused context for your task. It 
 
 You need **GitHub Copilot CLI** and [uv](https://docs.astral.sh/uv/getting-started/installation/). Git is required for Git checkouts and branch tracking. Plain folders can be used without Git. **GitHub CLI (`gh`) is optional.**
 
+### npm installation (release 1.6.0)
+
+Requires Node.js 22+ and npm in addition to the prerequisites above. The first npm publication is pending maintainer authentication; until then use the ZIP option below or the tested tarball from GitHub Actions.
+
+Once published, install your team's approved version:
+
+```powershell
+npm install -g repoecho@1.6.0 --ignore-scripts
+repoecho setup --replace
+repoecho --version
+```
+
+npm supplies the command on PATH on Windows, macOS and Linux. Setup copies the bundled skill into Copilot's personal skills folder; it does not download from GitHub. uv supplies Python 3.12 if needed. Node alone does not replace Python. On restricted networks, provision Python through your approved uv mirror or set `REPOECHO_PYTHON` to an approved Python executable's absolute path.
+
+No npm dependencies or install-time scripts are required. For a corporate npm registry, proxy, certificates, offline installation or migration from the ZIP installer, see [npm setup](docs/npm.md).
+
+### ZIP installation (no Node or npm required)
+
 Download this repository using **Code → Download ZIP**, then extract it. In PowerShell, from the directory containing `repoecho-main`, run:
 
 ```powershell
@@ -244,7 +262,16 @@ uv run --no-project --python 3.12 .\tools\retrieval_eval.py
 
 **No `gh` or system Python needed. Your repository's saved notes and cache settings stay in place.** Updating the installed skill does not automatically update your `AGENTS.md` or Copilot instruction file.
 
-### Update with one command (no Git or gh)
+### Installed with npm
+
+```powershell
+npm install -g repoecho@1.6.0 --ignore-scripts
+repoecho setup --replace
+```
+
+Replace `1.6.0` with your team's next approved version (or `latest` for the newest published release). Then reload Copilot's skills as described below. npm manages the executable; setup refreshes the skill. Both steps are needed. Existing repository caches remain in place. `repoecho update` explains these commands for npm installations.
+
+### Installed with ZIP: update with one command (no Git or gh)
 
 Close Copilot to release the installed skill folder. From a new PowerShell or terminal window run:
 
@@ -376,3 +403,7 @@ RepoEcho checks whether saved evidence has changed; it cannot guarantee that eve
 - [Agent workflow](.github/skills/repoecho/SKILL.md)
 
 Created for **Arvin Ubhi**.
+
+## License and releases
+
+[MIT](LICENSE), copyright 2026 Arvin Ubhi. See [release publishing](docs/publishing.md), [security reporting](SECURITY.md) and the [changelog](CHANGELOG.md).
